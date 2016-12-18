@@ -29,24 +29,24 @@ void display_image(string title, const cv::Mat &img){
 }
 
 /*
-Mat ReadMatFromTxt(string filename, int rows,int cols)
-{
-    double m;
-    Mat out = Mat::zeros(32, 32, CV_64FC1);//Matrix to store values
-    
-    ifstream fileStream(filename);
-    int cnt = 0;//index starts from 0
-    while (fileStream >> m)
-    {
-        int temprow = cnt / cols;
-        int tempcol = cnt % cols;
-        //cout << m<<std::endl;
-        out.at<int>(temprow, tempcol) = m;
-        cnt++;
-    }
-    return out;
-}
-*/
+ Mat ReadMatFromTxt(string filename, int rows,int cols)
+ {
+ double m;
+ Mat out = Mat::zeros(32, 32, CV_64FC1);//Matrix to store values
+ 
+ ifstream fileStream(filename);
+ int cnt = 0;//index starts from 0
+ while (fileStream >> m)
+ {
+ int temprow = cnt / cols;
+ int tempcol = cnt % cols;
+ //cout << m<<std::endl;
+ out.at<int>(temprow, tempcol) = m;
+ cnt++;
+ }
+ return out;
+ }
+ */
 
 Mat get_PCA(int num){
     
@@ -68,10 +68,9 @@ Mat get_PCA(int num){
         src6.push_back(res);
     }
     cv::Mat mu, covar;
-    calcCovarMatrix(src6, covar, mu, CV_COVAR_NORMAL | CV_COVAR_COLS);
-    
-    CvMat* evec  = cvCreateMat(800,800,CV_32FC1);
-    CvMat* eval  = cvCreateMat(800,1,CV_32FC1);
+    calcCovarMatrix(src6, covar, mu, CV_COVAR_NORMAL | CV_COVAR_ROWS);
+    CvMat* evec  = cvCreateMat(784,784,CV_32FC1);
+    CvMat* eval  = cvCreateMat(784,1,CV_32FC1);
     CvMat cov = covar;
     cvZero(evec);
     cvZero(eval);
@@ -86,13 +85,15 @@ Mat get_PCA(int num){
 int main(int argc, const char * argv[]) {
     
     cv::String path("/Users/naveenmysore/Documents/cd_something/codes/Prinicpal_component_analysis/data/0/*.jpg"); //select only jpg
-    for(int l=0; l<=10;l++){
+    for(int l=9; l<10;l++){
         cout<<l<<std::endl;
         string file_name ="/Users/naveenmysore/Documents/cd_something/codes/Prinicpal_component_analysis/learned"+std::to_string(l)+".txt";
         ofstream outputfile;
         outputfile.open(file_name);
         cv::Mat EV = get_PCA(l);
         outputfile<<l<<std::endl;
+        cout<<EV.rows;
+        cout<<EV.cols;
         for(int j=0; j<25; j++){
             for(int i=0; i<800; i++) outputfile << EV.at<double>(j,i)<<" ";
             outputfile<<std::endl;
@@ -101,8 +102,7 @@ int main(int argc, const char * argv[]) {
     }
     cout<<"done";
     //display_image("source_image" , datatp);
-
+    
     waitKey(0);
     return 0;
 }
-
