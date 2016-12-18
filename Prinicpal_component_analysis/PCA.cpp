@@ -85,7 +85,7 @@ Mat get_PCA(int num){
 int main(int argc, const char * argv[]) {
     
     cv::String path("/Users/naveenmysore/Documents/cd_something/codes/Prinicpal_component_analysis/data/0/*.jpg"); //select only jpg
-    for(int l=9; l<10;l++){
+    for(int l=0; l<10;l++){
         cout<<l<<std::endl;
         string file_name ="/Users/naveenmysore/Documents/cd_something/codes/Prinicpal_component_analysis/learned"+std::to_string(l)+".txt";
         ofstream outputfile;
