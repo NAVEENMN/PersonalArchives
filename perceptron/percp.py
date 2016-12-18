@@ -30,6 +30,7 @@ class Perceptron(object):
 				self.w_[0] += update
 				errors += int(update != 0.0)
 			self.errors_.append(errors)
+		print self.w_
 		return self
 	def net_input(self,X):
 		return np.dot(X, self.w_[1:]) + self.w_[0]
@@ -73,16 +74,16 @@ def main():
 	ppn = Perceptron(eta=0.1, n_iter=10)
 	ppn.fit(X, y)
 	# --- plot error
-	plt.plot(range(1, len(ppn.errors_) + 1), ppn.errors_, marker='o')
-	plt.xlabel('Epochs')
-	plt.ylabel('# of missclassifications')
-	plt.show()
+	#plt.plot(range(1, len(ppn.errors_) + 1), ppn.errors_, marker='o')
+	#plt.xlabel('Epochs')
+	#plt.ylabel('# of missclassifications')
+	#plt.show()
 	# ---- plot decsion boundry on sample space
-	plot_decision_regions(X, y, ppn)
-	plt.xlabel('sepal length')
-	plt.ylabel('petal lenght')
-	plt.legend(loc='upper left')
-	plt.show()
+	#plot_decision_regions(X, y, ppn)
+	#plt.xlabel('sepal length')
+	#plt.ylabel('petal lenght')
+	#plt.legend(loc='upper left')
+	#plt.show()
 	
 
 if __name__ == "__main__":
