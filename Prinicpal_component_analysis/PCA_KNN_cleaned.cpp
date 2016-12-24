@@ -23,7 +23,7 @@ using namespace std;
 
 #define learned_eigen_vectors "/Users/naveenmysore/Documents/cd_something/codes/Prinicpal_component_analysis/EV.xml"
 #define vectors_in_transformed_space "/Users/naveenmysore/Documents/cd_something/codes/Prinicpal_component_analysis/new_space.xml"
-#define test_image "/Users/naveenmysore/Documents/cd_something/codes/Prinicpal_component_analysis/data/8/4.jpg"
+#define test_image "/Users/naveenmysore/Documents/cd_something/codes/Prinicpal_component_analysis/data/5/4.jpg"
 
 Mat image_src;
 
@@ -108,11 +108,18 @@ void MyLine( Mat img, Point start, Point end )
 
 int main(int argc, const char * argv[]) {
     
-    VideoCapture cap;
-    Mat frame;
-    if(!cap.open(0))
-        return 0;
-    int t = 0;
+    
+    bool get_image_from_camera = true;
+    bool learn_new = false;
+    cv::Mat im;
+    Mat grad_x, grad_y;
+
+    if(get_image_from_camera){
+        VideoCapture cap;
+        Mat frame;
+        if(!cap.open(0))
+            return 0;
+        int t = 0;
 
     while(t<100)
     {
@@ -133,21 +140,96 @@ int main(int argc, const char * argv[]) {
     
     cv::Rect roi = cv::Rect(200,200,500,500);
     cv::Mat roiImg;
+    cv::Mat contour;
+    cv:Mat src_copy;
     roiImg = frame(roi);
     roiImg.copyTo(frame);
     
     
     desp_mat("orignal", frame);
-    // to gray -> blur -> sobel -> resize
-    cv::cvtColor(frame, frame, CV_BGR2GRAY);
-    frame =  cv::Scalar::all(255) - frame;
-    cv::threshold(frame, frame, 100, 255, cv::THRESH_BINARY);
+    src_copy = frame;
+    //cv::threshold(frame, frame, 100, 255, cv::THRESH_BINARY);
     Mat m1 = Mat(28,28, CV_64F, cvScalar(0.));
-    cv::resize(frame, frame, m1.size());
+    //GaussianBlur( frame, frame, Size( 7, 7), 0, 0 );
+    //Sobel(frame, frame, CV_32F, 0, 1);
+    GaussianBlur( frame, frame, Size(3,3), 0, 0, BORDER_DEFAULT );
+    cvtColor( frame, frame, CV_BGR2GRAY );
+        
+    dilate(frame, frame
+           , Mat(), Point(-1, -1), 2, 1, 1);
+        
+        // Create a structuring element
+        int erosion_size = 3;
+        Mat element = getStructuringElement(cv::MORPH_ERODE,
+                                            cv::Size(2 * erosion_size + 1, 2 * erosion_size + 1),
+                                            cv::Point(erosion_size, erosion_size) );
+        
+        // Apply erosion or dilation on the image
+        erode(frame,frame,element);  // dilate(image,dst,element);
+        
+    cv::Canny(frame,frame,10,350);
+        
+        vector<vector<Point> > contours;
+        vector<Vec4i> hierarchy;
+        findContours( frame, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+        /// Draw contours
+        Mat drawing = Mat::zeros( frame.size(), CV_64FC1 );
+        for( int i = 0; i< contours.size(); i++ )
+        {
+            Scalar color = Scalar( 255, 255, 255 );
+            //drawContours( drawing, contours, i, color, 2, 8, hierarchy, 0, Point() );
+            drawContours( frame, contours, i, color, CV_FILLED, 8, hierarchy );
+        }
+    
+        
+        /// Approximate contours to polygons + get bounding rects and circles
+        vector<vector<Point> > contours_poly( contours.size() );
+        vector<Rect> boundRect( contours.size() );
+        vector<Point2f>center( contours.size() );
+        vector<float>radius( contours.size() );
+        
+        for( int i = 0; i < contours.size(); i++ )
+        { approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
+            boundRect[i] = boundingRect( Mat(contours_poly[i]) );
+            minEnclosingCircle( (Mat)contours_poly[i], center[i], radius[i] );
+        }
+        
+        
+        /// Draw polygonal contour + bonding rects + circles
+        drawing = Mat::zeros( frame.size(), CV_64FC1 );
+        for( int i = 0; i< contours.size(); i++ )
+        {
+            Scalar color = Scalar( 255, 255, 255 );
+            drawContours( drawing, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point() );
+            // rectangle( drawing, boundRect[i].tl(), boundRect[i].br(), color, 2, 8, 0 );
+            // circle( drawing, center[i], (int)radius[i], color, 2, 8, 0 );
+        }
+        
+    /// Gradient X
+    //cv::Scharr( frame, grad_x, CV_64F, 1, 0, 1, 0, BORDER_DEFAULT );
+    /// Gradient Y
+    //cv::Scharr( frame, grad_y, CV_64F, 0, 1, 1, 0, BORDER_DEFAULT );
+    //
+        
+    // now frame has image with contor
+
+        //Apply thresholding
+        cv::threshold(src_copy, src_copy, 100, 255, cv::THRESH_BINARY_INV);
+        cv::cvtColor(src_copy, src_copy, CV_BGR2GRAY);
+        addWeighted( src_copy, 0.3, frame, 0.7, 0, frame );
+        cv::threshold(frame, frame, 100, 255, cv::THRESH_BINARY);//final
+        display_image("before" , frame);
+        cv::resize(frame, frame, m1.size(),0,0, INTER_AREA);
+    im = frame;
+    } else {
+        string file_name = test_image;
+        im = cv::imread(file_name, CV_LOAD_IMAGE_GRAYSCALE);
+
+    }
     //GaussianBlur( frame, frame, Size( 7, 7), 0, 0 );
     //Sobel(frame, frame, CV_32F, 0, 1);
     
-    bool learn_new = false; // if false read principal components from file
+     // if false read principal components from file
     cv::Mat EV;
     cv::Mat new_space;
     if (learn_new){
@@ -156,12 +238,7 @@ int main(int argc, const char * argv[]) {
     } else {
         EV = ReadMatFromTxt(learned_eigen_vectors,"EV");
     }
-    string file_name = test_image;
-    //cv::Mat im = cv::imread(file_name, CV_LOAD_IMAGE_GRAYSCALE);
-    cv::Mat greyMat;
-    cv::Mat im;
-    im = frame;
-    desp_mat("frame", frame);
+    
     cv::Mat res;
     res = im.reshape(0,1);
     res.convertTo(res, CV_32FC1);
@@ -215,25 +292,31 @@ int main(int argc, const char * argv[]) {
         ivs.push_back(dist);
     }
     cv::Mat dst;
-    cv::sortIdx(ivs, dst, CV_SORT_EVERY_COLUMN + CV_SORT_ASCENDING);
+    cv::sortIdx(ivs, dst, CV_SORT_EVERY_COLUMN | CV_SORT_ASCENDING);
     
     desp_mat("idx", dst);
     int votes[10]={0};
-    for(int i=0; i<dst.rows; i++){
-        int idx = dst.at<int>(0,0)/800;
-        int current_vote = votes[idx];
+    for(int i=0; i<20; i++){
+        int idx = dst.at<int>(i,0)/800;
+        int current_vote = votes[idx-1];
         current_vote = current_vote + 1;
-        votes[idx] = current_vote;
+        votes[idx-1] = current_vote;
     }
     
     int cl = 0;
-    cl = *std::max_element(votes,votes+10);
+    int index = 0;
+    for(int i=0; i<=9; i++){
+        cout<<i<<":"<<votes[i]<<endl;
+        if(votes[i] > cl){
+            cl = votes[i];
+            index = i;
+        }
+    }
 
-    file_name ="/Users/naveenmysore/Documents/cd_something/codes/Prinicpal_component_analysis/classes/p"+std::to_string(cl)+".jpg";
+    string file_name ="/Users/naveenmysore/Documents/cd_something/codes/Prinicpal_component_analysis/classes/p"+std::to_string(index+1)+".jpg";
     cv::Mat imd = cv::imread(file_name, CV_LOAD_IMAGE_GRAYSCALE);
-
     display_image("Prediction" , imd);
-    display_image("Read" , frame);
+    display_image("Read" , im);
 
     waitKey(0);
     return 0;
