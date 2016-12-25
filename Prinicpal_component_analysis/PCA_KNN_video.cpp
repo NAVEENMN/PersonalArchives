@@ -114,6 +114,14 @@ int main(int argc, const char * argv[]) {
     cv::Mat im;
     Mat grad_x, grad_y;
 
+    /*
+     if (!cap.open("tcp://192.168.1.1:5555"))
+     {
+     printf("AR.Drone ERROR CONNECT\n");
+     return -1;
+     }
+     */
+    
     if(get_image_from_camera){
         VideoCapture cap;
         Mat frame;
