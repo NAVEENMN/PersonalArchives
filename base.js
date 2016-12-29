@@ -5,7 +5,7 @@ var http = require('http');
 var client  = arDrone.createClient();
 var pngStream = client.getPngStream();
 var frameCounter = 0;
-var period = 100; // Save a frame every 5000 ms.
+var period = 40; // 25 Frames per second.
 var lastFrameTime = 0;
 
 var lastPng;
@@ -13,7 +13,11 @@ var lastPng;
 pngStream
   .on('error', console.log)
   .on('data', function(pngBuffer) {
-	lastPng = pngBuffer;
+	var now = (new Date()).getTime();
+	if (now - lastFrameTime > period) {
+		lastFrameTime = now;
+		lastPng = pngBuffer;
+	}
   });
 
 var server = http.createServer(function(req, res) {
@@ -30,3 +34,19 @@ res.end(lastPng);
 server.listen(8080, function() {
    console.log('Serving latest png on port 8080 ...');
 })
+
+
+setTimeout(run, 8000);
+
+function run() {
+client.takeoff();
+
+client
+  .after(5000, function() {
+    this.animate('wave', 15);
+  })
+  .after(5000, function() {
+    this.stop();
+    this.land();
+  });
+}
