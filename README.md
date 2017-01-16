@@ -1,6 +1,11 @@
 # DVision
 Open CV based Drone Navigation
 ( This project is still under developement )
+directory functions will have individual implementations for one. Once required implemenations are complemented the architecture will be designed around it.
+current implementation
+1) Harr facedectection
+2) optical flow 
+3) stereo vision.
 
 ## Getting Started
 install ar-parrot drone node js api
