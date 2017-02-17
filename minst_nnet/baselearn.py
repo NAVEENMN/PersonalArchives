@@ -3,34 +3,43 @@ import numpy as np
 from PIL import Image
 import glob
 
-
 class NeuralNetwork:
 	learning_rate = 0.5
 	def __init__(self, network_desp):
+		self.true_class  = [1, 0 , 0 , 0 , 0, 0 , 0 , 0 , 0 , 0]
 		self.num_inputs = network_desp["num_inputs"]
 		layers = network_desp["layers"]
-		layer1 = layers[0]
-		layer2 = layers[1]
-		out = layers[2]
-		self.l1_weights = layer1["weights"]
-		self.l2_weights = layer2["weights"]
-		self.out_weights = out["weights"]
-		self.l1_bias = layer1["bias"]
-		self.l2_bias = layer2["bias"]
-		self.out_bias = out["bias"]
+		self.l_weights = []
+		self.l_bias = []
+		self.num_layers = len(layers)
+		for x in range(0, len(layers)):
+			layer = layers[x]
+			self.l_weights.append(layer["weights"])
+			self.l_bias.append(layer["bias"])
 
-	def feed_forward(self, x):
-		layer_1 = tf.add(tf.matmul(x, self.l1_weights), self.l1_bias)
-		layer_1 = tf.nn.relu(layer_1) #activation
-		print "ok"
-		layer_2 = tf.add(tf.matmul(layer_1, self.l2_weights), self.l2_weights)
-		layer_2 = tf.nn.relu(layer_2)
-		out_layer = tf.add(tf.matmul(layer_2, self.out_weights), self.out_bias)
-		return out_layer
+	def feed_forward(self, x, layer_id):
+		prediction = None
+		weights = self.l_weights[layer_id]
+		bias = self.l_bias[layer_id]
+		print "--FP layer"+str(layer_id)+" to layer", str(layer_id+1)
+		#print x, weights, bias
+		layer_in = tf.add(tf.matmul(x, weights), bias)
+		layer_in = tf.nn.relu(layer_in) #activation
+		#print layer_in
+		if layer_id < self.num_layers-1:
+			prediction = self.feed_forward(layer_in, layer_id+1)
+		else:
+			return layer_in
+		return prediction
 
 	def train(self, features):
-		prediction = self.feed_forward(features)
-		print prediction
+		prediction = self.feed_forward(features, 0)
+		error = tf.subtract(prediction, self.true_class)
+		self.backprogate(error)
+		return error
+	
+	def backprogate(self, errors):
+		print errors
 		
 #load image pixels
 #we will take images
@@ -77,9 +86,9 @@ def get_network_descpription():
 	layer1["weights"] = tf.Variable(tf.random_normal([784, 784]))
 	layer2["weights"] = tf.Variable(tf.random_normal([784, 20]))
 	layer3["weights"] = tf.Variable(tf.random_normal([20, 10]))
-	layer1["bias"] = tf.Variable(tf.random_normal([784]))
-	layer2["bias"] = tf.Variable(tf.random_normal([20]))
-	layer3["bias"] = tf.Variable(tf.random_normal([10]))
+	layer1["bias"] = tf.Variable(tf.random_normal([1, 784]))
+	layer2["bias"] = tf.Variable(tf.random_normal([1, 20]))
+	layer3["bias"] = tf.Variable(tf.random_normal([1, 10]))
 	layers = [layer1, layer2, layer3]
 	dp["layers"] = layers
 	return dp
@@ -106,7 +115,16 @@ def main():
 	nn = NeuralNetwork(network)
 	ima = np.transpose(image[0][0])
 	data =  tf.cast(ima, tf.float32)
-	nn.train(data)
+	p = nn.train(data)
+	#initialize the variable
+	init_op = tf.global_variables_initializer()
+	#run the graph
+	with tf.Session() as sess:
+    		sess.run(init_op) #execute init_op
+    		#print the random values that we sample
+    		print (sess.run(p))
+
+
 
 if __name__ == "__main__":
 	main()
