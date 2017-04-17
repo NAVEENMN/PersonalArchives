@@ -5,6 +5,7 @@ import os
 import sys
 #import cv2
 import time
+import gzip
 import signal
 import random
 import numpy as np
@@ -170,13 +171,19 @@ def trainNetwork(s, readout, h_fc1, sess, mode):
     if mode == 2:
         # load observations
 	T = deque()
+	instance = deque()
 	path, dirs, memories = os.walk(observation_data_path).next()
 	number_of_obser = len(memories)
         if number_of_obser > 0:
 	    for memory in memories:
 		memory = observation_data_path+memory
-	        with open(memory,'rb') as fp:
+		try:
+	            with open(memory,'r') as fp:
 			instance = pickle.load(fp)
+		except:
+		    print(memory)
+		    #with open(memory,'r') as fp:
+			#instance = pickle.load(fp)    
 	        T.extend(instance)
             # sample a minibatch to train on
             minibatch = random.sample(T, 1)
