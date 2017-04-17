@@ -31,6 +31,7 @@ REPLAY_MEMORY         = 5000 # number of previous transitions to remember
 BATCH                 = 32 # size of minibatch
 model_path            = "saved_model/"
 observation_data_path = "observations/"
+EPOCHS                = 30
 #======== Network Hyper Parameter
 PADDING               = "SAME"
 INPUT_SIZE_WIDTH      = 320
@@ -168,41 +169,42 @@ def trainNetwork(s, readout, h_fc1, sess, mode):
 
     if mode == 2:
         # load observations
-	T = deque()
-	path, dirs, memories = os.walk(observation_data_path).next()
-	number_of_obser = len(memories)
-        if number_of_obser > 0:
-	    for memory in memories:
-		memory = observation_data_path+memory
-	        with open(memory,'rb') as fp:
-			instance = pickle.load(fp)
-	        T.extend(instance)
-            # sample a minibatch to train on
-            minibatch = random.sample(T, 1)
+	for epoc in range(0, EPOCHS):
+	    T = deque()
+	    path, dirs, memories = os.walk(observation_data_path).next()
+	    number_of_obser = len(memories)
+            if number_of_obser > 0:
+	        for memory in memories:
+		    memory = observation_data_path+memory
+	            with open(memory,'rb') as fp:
+		    	instance = pickle.load(fp)
+	            T.extend(instance)
+                # sample a minibatch to train on
+                minibatch = random.sample(T, 1)
 
-            # get the batch variables
-            s_j_batch = [d[0] for d in minibatch]
-            a_batch = [d[1] for d in minibatch]
-            r_batch = [d[2] for d in minibatch]
-            s_j1_batch = [d[3] for d in minibatch]
-            y_batch = []
-            readout_j1_batch = readout.eval(feed_dict = {s : s_j1_batch})
-            for i in range(0, len(minibatch)):
-                terminal = minibatch[i][4]
-                # if terminal, only equals reward
-                if terminal:
-                    y_batch.append(r_batch[i])
-                else:
-                    y_batch.append(r_batch[i] + GAMMA * np.max(readout_j1_batch[i]))
+                # get the batch variables
+                s_j_batch = [d[0] for d in minibatch]
+                a_batch = [d[1] for d in minibatch]
+                r_batch = [d[2] for d in minibatch]
+                s_j1_batch = [d[3] for d in minibatch]
+                y_batch = []
+                readout_j1_batch = readout.eval(feed_dict = {s : s_j1_batch})
+                for i in range(0, len(minibatch)):
+                    terminal = minibatch[i][4]
+                    # if terminal, only equals reward
+                    if terminal:
+                        y_batch.append(r_batch[i])
+                    else:
+                        y_batch.append(r_batch[i] + GAMMA * np.max(readout_j1_batch[i]))
 
-            # perform gradient step
-            train_step.run(feed_dict = {
-                y : y_batch,
-                a : a_batch,
-                s : s_j_batch}
-            )
-            saver.save(sess, model_path + GAME + '-dqn', global_step = 1)
-	    print("cost")
+                # perform gradient step
+                train_step.run(feed_dict = {
+                    y : y_batch,
+                    a : a_batch,
+                    s : s_j_batch}
+                )
+                saver.save(sess, model_path + GAME + '-dqn', global_step = 1)
+	        print("epoch", epoc)
         
 #========= Image processing
 def mse(imageA, imageB):
