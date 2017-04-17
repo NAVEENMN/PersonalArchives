@@ -1,0 +1,16 @@
+observations/observation_11 filter=lfs diff=lfs merge=lfs -text
+observations/observation_4 filter=lfs diff=lfs merge=lfs -text
+observations/observation_5 filter=lfs diff=lfs merge=lfs -text
+observations/observation_7 filter=lfs diff=lfs merge=lfs -text
+observations/observation_9 filter=lfs diff=lfs merge=lfs -text
+observations/observation_10 filter=lfs diff=lfs merge=lfs -text
+observations/observation_13 filter=lfs diff=lfs merge=lfs -text
+observations/observation_16 filter=lfs diff=lfs merge=lfs -text
+observations/observation_2 filter=lfs diff=lfs merge=lfs -text
+observations/observation_3 filter=lfs diff=lfs merge=lfs -text
+observations/observation_8 filter=lfs diff=lfs merge=lfs -text
+observations/observation_1 filter=lfs diff=lfs merge=lfs -text
+observations/observation_12 filter=lfs diff=lfs merge=lfs -text
+observations/observation_15 filter=lfs diff=lfs merge=lfs -text
+observations/observation_6 filter=lfs diff=lfs merge=lfs -text
+observations/observation_14 filter=lfs diff=lfs merge=lfs -text

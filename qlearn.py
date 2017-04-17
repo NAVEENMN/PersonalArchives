@@ -26,7 +26,7 @@ create_fail_reference = False
 GAME                  = 'DINO' # the name of the game being played for log files
 ACTIONS               = 2 # number of valid actions
 GAMMA                 = 0.99 # decay rate of past observations
-OBSERVE               = 10. # timesteps to observe before training
+OBSERVE               = 100. # timesteps to observe before training
 REPLAY_MEMORY         = 5000 # number of previous transitions to remember
 BATCH                 = 32 # size of minibatch
 model_path            = "saved_model/"
@@ -161,7 +161,8 @@ def trainNetwork(s, readout, h_fc1, sess, mode):
 	number_of_obser = len(files)
 	filename = observation_data_path+"observation_"+str(number_of_obser+1)
 	if number_of_obser > 20:
-	    os.system("rm -rf "+observation_data_path+"*")
+	    files = sorted(os.listdir(observation_data_path), key=os.path.getctime)
+	    os.system("rm "+files[0])#remove oldest file
         with open(filename,'wb') as fp:
             pickle.dump(D,fp)
 
