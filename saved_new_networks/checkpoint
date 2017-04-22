@@ -1,0 +1,2 @@
+model_checkpoint_path: "DINO-dqn-10000"
+all_model_checkpoint_paths: "DINO-dqn-10000"

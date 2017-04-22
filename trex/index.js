@@ -84,7 +84,7 @@
      * Frames per second.
      * @const
      */
-    var FPS = 45;
+    var FPS = 60;
 
     /** @const */
     var IS_HIDPI = window.devicePixelRatio > 1;
@@ -2055,9 +2055,9 @@
                 // Left of the current score.
                 var highScoreX = this.x - (this.maxScoreUnits * 2) *
                     DistanceMeter.dimensions.WIDTH;
-                this.canvasCtx.translate(highScoreX, this.y);
+                this.canvasCtx.translate(highScoreX, this.y-11);
             } else {
-                this.canvasCtx.translate(this.x, this.y);
+                this.canvasCtx.translate(this.x, this.y-11);
             }
 
             this.canvasCtx.drawImage(this.image, sourceX, sourceY,
@@ -2137,11 +2137,11 @@
             // Draw the digits if not flashing.
             if (paint) {
                 for (var i = this.digits.length - 1; i >= 0; i--) {
-                    //this.draw(i, parseInt(this.digits[i]));
+                    this.draw(i, parseInt(this.digits[i]));
                 }
             }
 
-            // this.drawHighScore();
+            this.drawHighScore();
             return playSound;
         },
 
