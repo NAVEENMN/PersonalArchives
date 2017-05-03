@@ -2,18 +2,14 @@
 from __future__ import print_function
 
 import cv2
+import glob
 import random
 import os.path
-import numpy as np
-import glob
-import PIL.ImageOps
-import tensorflow as tf
-from collections import deque
-from sklearn.utils import shuffle
 import datetime
-import random
-from PIL import Image, ImageChops
-from pandas.io.parsers import read_csv
+import numpy as np
+import tensorflow as tf
+from sklearn.utils import shuffle
+
 
 #Log & Models
 DATA_PATH       = "data\\"
@@ -30,7 +26,7 @@ learning_rate   = 0.0001
 
 #======== Generative Network Hyper Parameter
 G_PADDING               = "SAME"
-G_FC_LAYER_1_SIZE       = IMAGE_WIDTH * IMAGE_HEIGHT * 4#4000*3 # input to fully connected layer
+G_FC_LAYER_1_SIZE       = IMAGE_WIDTH * IMAGE_HEIGHT * 4 # input to fully connected layer
 G_LAYER_1_FILTER_SIZE   = 3 # 3x3
 G_LAYER_1_FILTER_COUNT  = 50 # generate 50 features
 G_LAYER_1_STRIDE        = 2
@@ -245,6 +241,7 @@ def trainNetwork(sess, X):
 			save_path = saver.save(sess, MODEL_PATH+"\\pretrained_gan.ckpt", global_step=i)
 			print("saved to %s" % save_path)
 		i = i + 1
+	# evaluation
 	'''
 	test_images = sess.run(generator(10, 100))
 	test_eval = sess.run(discriminator(x_placeholder), {x_placeholder: test_images})

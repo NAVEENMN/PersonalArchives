@@ -32,14 +32,14 @@ When the network converges generator becomes so good at generating images that t
 ## Testing
 
 Images can be viewd on tensorboard. Here are few generated images.
-![Alt text](images/gen1.jpg?raw=true "generated image 1")
-![Alt text](images/gen2.jpg?raw=true "generated image 2")
-![Alt text](images/gen3.jpg?raw=true "generated image 3")
-![Alt text](images/gen4.jpg?raw=true "generated image 4")
-![Alt text](images/gen5.jpg?raw=true "generated image 5")
-![Alt text](images/gen6.jpg?raw=true "generated image 6")
-![Alt text](images/gen7.jpg?raw=true "generated image 7")
-![Alt text](images/gen8.jpg?raw=true "generated image 8")
+![Alt text](images/gen1.png?raw=true "generated image 1")
+![Alt text](images/gen2.png?raw=true "generated image 2")
+![Alt text](images/gen3.png?raw=true "generated image 3")
+![Alt text](images/gen4.png?raw=true "generated image 4")
+![Alt text](images/gen5.png?raw=true "generated image 5")
+![Alt text](images/gen6.png?raw=true "generated image 6")
+![Alt text](images/gen7.png?raw=true "generated image 7")
+![Alt text](images/gen8.png?raw=true "generated image 8")
 
 ## Additional References
 1. https://arxiv.org/abs/1406.2661
