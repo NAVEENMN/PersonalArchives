@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title></title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+</head>
+<body>
+
+<div id='map'></div>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoibXlzb3JuMSIsImEiOiIwODY0MDQ0ZTdiYTViYmU0ZTZiOGI4OTU5MjQxZGY1NCJ9.elqMFi4oQtFFjYXbW2Oxig';
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/dark-v9',
+    bearing: -10,
+    pitch: 60,
+    center: [-122.1248, 37.4183],
+    zoom: 20
+});
+
+var direction = 0, manual = false, speed = 1;
+
+// create a GeoJSON point to serve as a starting point
+var point = {
+    "type": "Point",
+    "coordinates": [-122.1248, 37.4183]
+};
+
+function setPosition() {
+    point.coordinates[0] += speed * Math.sin(direction) / 100000;
+    point.coordinates[1] += speed * Math.cos(direction) / 100000;
+    map.getSource('drone').setData(point);
+    map.setCenter(point.coordinates);
+}
+
+function setAngle() {
+    map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
+}
+
+function takescreen() {
+   var shell = WScript.CreateObject("WScript.Shell");
+   shell.Run("dir");
+}
+map.on('load', function () {
+    // add the GeoJSON above to a new vector tile source
+    map.addSource('drone', { type: 'geojson', data: point });
+    /*
+    map.addLayer({
+            'id': '3d-buildings',
+            'source': 'composite',
+            'source-layer': 'building',
+            'filter': ['==', 'extrude', 'true'],
+            'type': 'fill-extrusion',
+            'minzoom': 15,
+            'paint': {
+                'fill-extrusion-color': '#aaa',
+                'fill-extrusion-height': {
+                    'type': 'identity',
+                    'property': 'height'
+                },
+                'fill-extrusion-base': {
+                    'type': 'identity',
+                    'property': 'min_height'
+                },
+                'fill-extrusion-opacity': .6
+            }
+    });
+    */
+    map.addLayer({
+        "id": "drone-glow-strong",
+        "type": "circle",
+        "source": "drone",
+        "paint": {
+            "circle-radius": 5,
+            "circle-color": "#ffffff",
+            "circle-opacity": 0.4
+        }
+    });
+
+    map.addLayer({
+        "id": "drone-glow",
+        "type": "circle",
+        "source": "drone",
+        "paint": {
+            "circle-radius": 10,
+            "circle-color": "#ffffff",
+            "circle-opacity": 0.1
+        }
+    });
+
+    map.addLayer({
+        "id": "drone",
+        "type": "symbol",
+        "source": "drone",
+        "layout": {
+            "icon-image": "airport-11",
+            "icon-rotation-alignment": "map",
+            "icon-size":2.5
+        }
+    });
+});
+
+// Add manual control of the airplane with left and right arrow keys, just because
+document.body.addEventListener('keydown', function (e) {
+    if (e.which === 65) { // left
+        direction -= 0.1;
+        map.easeTo({
+                    bearing: direction * (180 / Math.PI),
+        });
+        manual = true;
+        setAngle();
+    }
+    if (e.which === 68) { // right
+        direction += 0.1;
+        map.easeTo({
+                    bearing: direction * (180 / Math.PI),
+        });
+        manual = true;
+        setAngle();
+    }
+    if (e.which === 87) { // faster
+        manual = true;
+        setPosition();
+        e.preventDefault();
+    }
+    if (e.which === 83) { // slower
+        manual = true;
+        setPosition();
+        e.preventDefault();
+    }
+    
+}, true);
+map.addControl(new mapboxgl.FullscreenControl());
+</script>
+
+</body>
+</html>
