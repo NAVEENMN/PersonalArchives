@@ -106,31 +106,33 @@ def grab_screen(region=None):
 
 def Actions(action):
 	# Straight
-	if action[0] == 1:
-		PressKey(W)
-		ReleaseKey(A)
-		ReleaseKey(D)
-	# Left
-	if action[1] == 2:
-		PressKey(W)
-		PressKey(A)
-		ReleaseKey(D)
-		time.sleep(t_time)
-		ReleaseKey(A)
-	# Right
-	if action[2] == 3:
-		PressKey(W)
-		PressKey(D)
-		ReleaseKey(A)
-		time.sleep(t_time)
-		ReleaseKey(D)
-	# Slow
-	if action[3] == 4:
-		PressKey(S)
-		ReleaseKey(A)
-		ReleaseKey(W)
-		time.sleep(t_time)
-		ReleaseKey(D)
+    print (action)
+    if action[0] == 1:
+        PressKey(W)
+        ReleaseKey(A)
+        ReleaseKey(D)
+        ReleaseKey(S)
+    # Left
+    if action[1] == 2:
+        PressKey(S)
+        ReleaseKey(A)
+        time.sleep(t_time)
+        ReleaseKey(D)
+        ReleaseKey(S)
+    # Right
+    if action[2] == 3:
+        PressKey(D)
+        ReleaseKey(A)
+        time.sleep(t_time)
+        ReleaseKey(D)
+        ReleaseKey(S)
+    # Slow
+    if action[3] == 4:
+        PressKey(A)
+        ReleaseKey(S)
+        ReleaseKey(W)
+        time.sleep(t_time)
+        ReleaseKey(D)
 
 
 def get_pressed_key():

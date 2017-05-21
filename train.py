@@ -11,10 +11,13 @@ from util import batch_generator
 import argparse
 import os
 from keras.utils.np_utils import to_categorical
+import keras
 from sklearn.utils import shuffle
 
 np.random.seed(0)
 PATH = 'D:\\map_data\\'
+PATH1 = 'D:\\map_data1\\'
+PATHS = [PATH, PATH1]
 IMAGE_WIDTH           = 320
 IMAGE_HEIGHT          = 240
 IMAGE_CHANNEL         = 1 
@@ -55,24 +58,24 @@ def load_data1(args):
 def load_data(args):
     X = list()
     y = list()
-    for img in glob.glob(PATH+'*.png'):
-        parts = img.split("\\")
-        part = parts[2].split(".")
-        screen= cv2.imread(img)
-        part = part[0].split("_")
-        caction = part[1]
-        action = np.zeros(ACTIONS)  
-        if caction == "1000":
-            action = to_categorical(0, num_classes=ACTIONS)
-        if caction == "0100":
-            action = to_categorical(1, num_classes=ACTIONS)
-        if caction == "0010":
-            action = to_categorical(2, num_classes=ACTIONS)
-        if caction == "0001":
-            action = to_categorical(3, num_classes=ACTIONS)
-        X.append(img)
-        y.append(action)
-    X, y = shuffle(X, y)
+    for path in PATHS:
+        for img in glob.glob(PATH+'*.png'):
+            parts = img.split("\\")
+            part = parts[2].split(".")
+            screen= cv2.imread(img)
+            part = part[0].split("_")
+            caction = part[1]
+            action = np.zeros(ACTIONS)  
+            if caction == "1000":
+                action = to_categorical(0, num_classes=ACTIONS)
+            if caction == "0100":
+                action = to_categorical(1, num_classes=ACTIONS)
+            if caction == "0010":
+                action = to_categorical(2, num_classes=ACTIONS)
+            if caction == "0001":
+                action = to_categorical(3, num_classes=ACTIONS)
+            X.append(img)
+            y.append(action)
     X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=args.test_size, random_state=0)
     return X_train, X_valid, y_train, y_valid
 
@@ -105,8 +108,8 @@ def build_model(args):
     model.add(Conv2D(64, 3, 3, activation='elu'))
     model.add(Dropout(args.keep_prob))
     model.add(Flatten())
-    model.add(Dense(100, activation='softmax'))
-    model.add(Dense(50, activation='softmax'))
+    model.add(Dense(100, activation='relu'))
+    model.add(Dense(50, activation='relu'))
     model.add(Dense(10, activation='softmax'))
     model.add(Dense(ACTIONS))
     model.summary()
@@ -120,7 +123,9 @@ def train_model(model, args, X_train, X_valid, y_train, y_valid):
                                  verbose=0,
                                  save_best_only=args.save_best_only,
                                  mode='auto')
-    model.compile(loss='categorical_crossentropy', optimizer='adam')
+    model.compile(loss=keras.losses.categorical_crossentropy,
+              optimizer=keras.optimizers.Adadelta(),
+              metrics=['accuracy'])
     model.fit_generator(batch_generator(args.data_dir, X_train, y_train, args.batch_size, True),
                         args.samples_per_epoch,
                         args.nb_epoch,
@@ -148,7 +153,7 @@ def main():
     parser.add_argument('-t', help='test size fraction',    dest='test_size',         type=float, default=0.2)
     parser.add_argument('-k', help='drop out probability',  dest='keep_prob',         type=float, default=0.5)
     parser.add_argument('-n', help='number of epochs',      dest='nb_epoch',          type=int,   default=10)
-    parser.add_argument('-s', help='samples per epoch',     dest='samples_per_epoch', type=int,   default=1000)
+    parser.add_argument('-s', help='samples per epoch',     dest='samples_per_epoch', type=int,   default=10000)
     parser.add_argument('-b', help='batch size',            dest='batch_size',        type=int,   default=40)
     parser.add_argument('-o', help='save best models only', dest='save_best_only',    type=s2b,   default='true')
     parser.add_argument('-l', help='learning rate',         dest='learning_rate',     type=float, default=1.0e-4)

@@ -27,11 +27,12 @@ def get_a_frame(file_count):
 		action=str("0010")
 	if r_a[3] == 1:
 		action=str("0001")
-	file_name = str(file_count)+'_'+action
+	timestr = time.strftime("%Y%m%d-%H%M%S")
+	file_name = str(timestr)+'_'+action
 	cv2.imwrite(PATH+file_name+'.png',screen)
 	if np.random.rand() < 0.5:
-        image = cv2.flip(screen, 1)
-        if r_a[0] == 1:
+		screen = cv2.flip(screen, 1)
+		if r_a[0] == 1:
 			action=str("1000")
 		if r_a[1] == 1:
 			action=str("0100")
@@ -40,7 +41,8 @@ def get_a_frame(file_count):
 		if r_a[3] == 1:
 			action=str("0010")
 		file_count = file_count + 1
-		file_name = str(file_count)+'_'+action
+		timestr = time.strftime("%Y%m%d-%H%M%S")
+		file_name = str(timestr)+'_'+action
 		cv2.imwrite(PATH+file_name+'.png',screen)
 	return screen, file_count
 
@@ -55,7 +57,7 @@ def main():
 	except Exception:
 		file_count = 0
 
-	endTime = datetime.datetime.now() + datetime.timedelta(minutes=5)
+	endTime = datetime.datetime.now() + datetime.timedelta(minutes=10)
 	while True:
 		if datetime.datetime.now() >= endTime:
 			break

@@ -5,6 +5,10 @@
     <title></title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase-messaging.js"></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
     <style>
         body { margin:0; padding:0; }
@@ -13,8 +17,24 @@
 </head>
 <body>
 
+
+
+<script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
+<script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
+
 <div id='map'></div>
 <script>
+// Initialize Firebase
+var trainref = new Firebase('https://sdrone-9ae10.firebaseio.com/train/');
+var config = {
+    apiKey: "AIzaSyDFkiLeyrKKzud7K8hg6oPLR-XxRS681qk",
+    authDomain: "sdrone-9ae10.firebaseapp.com",
+    databaseURL: "https://sdrone-9ae10.firebaseio.com",
+    projectId: "sdrone-9ae10",
+    storageBucket: "sdrone-9ae10.appspot.com",
+    messagingSenderId: "1011406105540"
+  };
+  firebase.initializeApp(config);
 mapboxgl.accessToken = 'pk.eyJ1IjoibXlzb3JuMSIsImEiOiIwODY0MDQ0ZTdiYTViYmU0ZTZiOGI4OTU5MjQxZGY1NCJ9.elqMFi4oQtFFjYXbW2Oxig';
 var map = new mapboxgl.Map({
     container: 'map',
@@ -33,46 +53,24 @@ var point = {
     "coordinates": [-122.1248, 37.4183]
 };
 
-function setPosition() {
-    point.coordinates[0] += speed * Math.sin(direction) / 100000;
-    point.coordinates[1] += speed * Math.cos(direction) / 100000;
-    map.getSource('drone').setData(point);
-    map.setCenter(point.coordinates);
+function setPosition(action) {
+    if (action == 0 || action == 1) {
+        point.coordinates[0] += speed * Math.sin(direction) / 100000;
+        point.coordinates[1] += speed * Math.cos(direction) / 100000;
+        map.getSource('drone').setData(point);
+        map.setCenter(point.coordinates);
+    } else {
+        map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
+    }
+    trainref.push({'latitude':point.coordinates[0], 
+                   'longitude':point.coordinates[1],
+                   'direction': direction,
+                   'actions':action});
 }
 
-function setAngle() {
-    map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
-}
-
-function takescreen() {
-   var shell = WScript.CreateObject("WScript.Shell");
-   shell.Run("dir");
-}
 map.on('load', function () {
     // add the GeoJSON above to a new vector tile source
     map.addSource('drone', { type: 'geojson', data: point });
-    /*
-    map.addLayer({
-            'id': '3d-buildings',
-            'source': 'composite',
-            'source-layer': 'building',
-            'filter': ['==', 'extrude', 'true'],
-            'type': 'fill-extrusion',
-            'minzoom': 15,
-            'paint': {
-                'fill-extrusion-color': '#aaa',
-                'fill-extrusion-height': {
-                    'type': 'identity',
-                    'property': 'height'
-                },
-                'fill-extrusion-base': {
-                    'type': 'identity',
-                    'property': 'min_height'
-                },
-                'fill-extrusion-opacity': .6
-            }
-    });
-    */
     map.addLayer({
         "id": "drone-glow-strong",
         "type": "circle",
@@ -109,30 +107,30 @@ map.on('load', function () {
 
 // Add manual control of the airplane with left and right arrow keys, just because
 document.body.addEventListener('keydown', function (e) {
-    if (e.which === 65) { // left
+    if (e.which === 65) { // left 0001
         direction -= 0.1;
         map.easeTo({
                     bearing: direction * (180 / Math.PI),
         });
         manual = true;
-        setAngle();
+        setPosition(4);
     }
-    if (e.which === 68) { // right
+    if (e.which === 68) { // right 0010
         direction += 0.1;
         map.easeTo({
                     bearing: direction * (180 / Math.PI),
         });
         manual = true;
-        setAngle();
+        setPosition(3);
     }
-    if (e.which === 87) { // faster
+    if (e.which === 87) { // up 1000
         manual = true;
-        setPosition();
-        e.preventDefault();
+        setPosition(0);
+        e.preventDefault(0);
     }
-    if (e.which === 83) { // slower
+    if (e.which === 83) { // down 0100
         manual = true;
-        setPosition();
+        setPosition(1);
         e.preventDefault();
     }
     

@@ -3,6 +3,7 @@ import argparse
 import os
 import numpy as np
 import utils.game_manager as gm
+import cv2
 
 #load our saved model
 from keras.models import load_model
@@ -13,8 +14,25 @@ model = None
 prev_image_array = None
 IMAGE_WIDTH           = 320
 IMAGE_HEIGHT          = 240
-IMAGE_CHANNEL         = 1  
+IMAGE_CHANNELS         = 1  
  
+
+def fly_drone(args):
+    #load model
+    model = load_model(args.model)
+    for x in range(0, 5):
+    	screen = gm.grab_screen(region=(0, 40 , 1920, 1080))
+    	screen = cv2.resize(screen, (IMAGE_WIDTH, IMAGE_HEIGHT), cv2.INTER_AREA)
+    	screen = cv2.cvtColor( screen, cv2.COLOR_RGB2GRAY )
+    	screen = np.reshape(screen, (-1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS)) 
+    	print(screen.shape)
+    	action = model.predict(screen, batch_size=1)
+    	print(action[0])
+    	take_action = [0, 0, 0, 0]
+    	ind = np.argmax(action[0])
+    	take_action[ind] = 1
+    	gm.Actions(take_action)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Remote Driving')
     parser.add_argument(
@@ -30,11 +48,5 @@ if __name__ == '__main__':
         help='Path to image folder. This is where the images from the run will be saved.'
     )
     args = parser.parse_args()
-
-    #load model
-    model = load_model(args.model)
-    screen = gm.grab_screen(region=(0, 40 , 1920, 1080))
-    screen = cv2.resize(image, (IMAGE_WIDTH, IMAGE_HEIGHT), cv2.INTER_AREA)
-    action = float(model.predict(screen, batch_size=1))
-    gm.Actions(action)
+    fly_drone(args)
    
