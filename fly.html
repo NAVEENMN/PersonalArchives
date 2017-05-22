@@ -24,10 +24,6 @@
 <script>
 // Initialize Firebase
 var testref = new Firebase('https://sdrone-9ae10.firebaseio.com/');
-var latitudes = [];
-var longitudes = [];
-var directions = [];
-var actions = [];
 
 var config = {
     apiKey: "AIzaSyDFkiLeyrKKzud7K8hg6oPLR-XxRS681qk",
@@ -58,6 +54,9 @@ var point = {
 };
 
 function setPosition() {
+    map.easeTo({
+        bearing: direction * (180 / Math.PI),
+    });
     map.getSource('drone').setData(point);
     map.setCenter(point.coordinates);
     map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
@@ -100,52 +99,22 @@ map.on('load', function () {
     });
 
 });
-var ctr = 0;
-async function update_map(items){
-    setTimeout(function() {  //Beginning of code that should run AFTER the timeout
-     point.coordinates[0] = latitudes[ctr];
-     point.coordinates[1] = longitudes[ctr];
-     direction = directions[ctr];
-     action = actions[ctr];
-     if (action>2){
-        map.easeTo({
-                    bearing: direction * (180 / Math.PI),
-        });
-        map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
-    } else {
-        setPosition();
-     }
-     if (ctr < items) {
-        update_map(items);
-     }
-     ctr++;
-    //lots more code
-    },100); 
-}
 
-testref.child('train').once('value').then(function(snapshot) {
-  var users = snapshot.val();
-  var uids = Object.keys(users);
-  var items = uids.length;
-   for (i=0; i<items; i++){
-        var latitude = parseFloat(snapshot.child(uids[i]).child('latitude').val());
-        var longitude = parseFloat(snapshot.child(uids[i]).child('longitude').val());
-        var action = parseInt(snapshot.child(uids[i]).child('actions').val());
-        direction = parseFloat(snapshot.child(uids[i]).child('direction').val());
-        latitudes.push(latitude);
-        longitudes.push(longitude);
-        directions.push(direction);
-        actions.push(action);    
+testref.child('test').on('child_changed', function (snapshot) {
+    var data = snapshot.val();
+    var key = snapshot.key();
+    //point.coordinates[0] = double(data.text);
+    //etPosition();
+    if(key == "latitude"){
+        point.coordinates[0] = data;
     }
-    return items;
-  
-}).then(function(items) {
-  // All promises succeeded.
-    update_map(items);
-
-}, function(error) {
-  // Something went wrong.
-  console.error(error);
+    if(key == "longitude"){
+        point.coordinates[1] = data;
+    }
+    if(key == "direction"){
+        direction = data;
+    }
+    setPosition();
 });
 
 map.addControl(new mapboxgl.FullscreenControl());
