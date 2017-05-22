@@ -4,6 +4,8 @@ import os
 import numpy as np
 import utils.game_manager as gm
 import cv2
+from firebase import firebase
+firebase = firebase.FirebaseApplication('https://sdrone-9ae10.firebaseio.com/', None)
 
 #load our saved model
 from keras.models import load_model
@@ -31,7 +33,12 @@ def fly_drone(args):
     	take_action = [0, 0, 0, 0]
     	ind = np.argmax(action[0])
     	take_action[ind] = 1
-    	gm.Actions(take_action)
+    	#gm.Actions(take_action)
+    	new_user = 'Ozgur Vatansever'
+    	data = dict()
+    	data['ra'] = 1;
+    	result = firebase.put('/actions', "action", data)
+    	print(result)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Remote Driving')

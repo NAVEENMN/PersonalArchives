@@ -23,12 +23,12 @@
 <div id='map'></div>
 <script>
 // Initialize Firebase
-var testref = new Firebase('https://sdrone-9ae10.firebaseio.com/test');
+var testref = new Firebase('https://sdrone-9ae10.firebaseio.com/');
 
 var config = {
     apiKey: "AIzaSyDFkiLeyrKKzud7K8hg6oPLR-XxRS681qk",
     authDomain: "sdrone-9ae10.firebaseapp.com",
-    databaseURL: "https://sdrone-9ae10.firebaseio.com/test/",
+    databaseURL: "https://sdrone-9ae10.firebaseio.com/",
     projectId: "sdrone-9ae10",
     storageBucket: "sdrone-9ae10.appspot.com",
     messagingSenderId: "1011406105540"
@@ -56,7 +56,7 @@ var point = {
 
 function setPosition() {
     map.easeTo({
-                    bearing: data.direction * (180 / Math.PI),
+        bearing: direction * (180 / Math.PI),
     });
     map.getSource('drone').setData(point);
     map.setCenter(point.coordinates);
@@ -99,26 +99,23 @@ map.on('load', function () {
         }
     });
 
-testref.on('child_changed', function (snapshot) {
-    var data = snapshot.child('latitude').val();
-    point.coordinates[0] = double(data);
-    //setPosition();
-    window.alert("sometext");
-});
-testref.on('child_changed', function (snapshot) {
-    var data = snapshot.child('longitude').val();
-    point.coordinates[1] = double(data);
-    setPosition();
-     window.alert("sometext");
-});
-testref.on('child_changed', function (snapshot) {
-    var data = snapshot.child('direction').val();
-    direction = double(data);
-    setPosition();
-     window.alert("sometext");
 });
 
-    
+testref.child('test').on('child_changed', function (snapshot) {
+    var data = snapshot.val();
+    var key = snapshot.key();
+    //point.coordinates[0] = double(data.text);
+    //etPosition();
+    if(key == "latitude"){
+        point.coordinates[0] = data;
+    }
+    if(key == "longitude"){
+        point.coordinates[1] = data;
+    }
+    if(key == "direction"){
+        direction = data;
+    }
+    setPosition();
 });
 
 map.addControl(new mapboxgl.FullscreenControl());
