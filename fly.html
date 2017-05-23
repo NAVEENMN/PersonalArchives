@@ -62,6 +62,21 @@ function setPosition() {
     map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
 }
 
+function move(action) {
+    if (action == 0 || action == 1) {
+        point.coordinates[0] += speed * Math.sin(direction) / 100000;
+        point.coordinates[1] += speed * Math.cos(direction) / 100000;
+        map.getSource('drone').setData(point);
+        map.setCenter(point.coordinates);
+    } else {
+        map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
+    }
+    trainref.push({'latitude':point.coordinates[0], 
+                   'longitude':point.coordinates[1],
+                   'direction': direction,
+                   'actions':action});
+}
+
 map.on('load', function () {
     // add the GeoJSON above to a new vector tile source
     map.addSource('drone', { type: 'geojson', data: point });

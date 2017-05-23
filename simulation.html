@@ -9,6 +9,13 @@
     <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase-messaging.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
+    <script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js"></script>
+    <link rel="stylesheet" type="text/css" href="/css/normalize.css">
+    <link rel="stylesheet" type="text/css" href="/css/result-light.css">
+    <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/base/jquery-ui.css">
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
     <style>
         body { margin:0; padding:0; }
@@ -16,29 +23,24 @@
     </style>
 </head>
 <body>
-
-<script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
-<script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
-
 <div id='map'></div>
 <script>
-// Initialize Firebase
-var testref = new Firebase('https://sdrone-9ae10.firebaseio.com/');
+
 var latitudes = [];
 var longitudes = [];
 var directions = [];
 var actions = [];
+var time_stamps = [];
+var actions_took =[];
+var frame_id = 0;
+var mode = 0;// 0:Train, 1:Simulation, 2:Testing
+var direction = 0, manual = false, speed = 1;
 
-var config = {
-    apiKey: "AIzaSyDFkiLeyrKKzud7K8hg6oPLR-XxRS681qk",
-    authDomain: "sdrone-9ae10.firebaseapp.com",
-    databaseURL: "https://sdrone-9ae10.firebaseio.com/",
-    projectId: "sdrone-9ae10",
-    storageBucket: "sdrone-9ae10.appspot.com",
-    messagingSenderId: "1011406105540"
-  };
-firebase.initializeApp(config);
+// Initialize Firebase
+var trainref = new Firebase('https://sdrone-9ae10.firebaseio.com/train/');
+var simref = new Firebase('https://sdrone-9ae10.firebaseio.com/');
 
+// Setup MapBox
 mapboxgl.accessToken = 'pk.eyJ1IjoibXlzb3JuMSIsImEiOiIwODY0MDQ0ZTdiYTViYmU0ZTZiOGI4OTU5MjQxZGY1NCJ9.elqMFi4oQtFFjYXbW2Oxig';
 var map = new mapboxgl.Map({
     container: 'map',
@@ -49,19 +51,17 @@ var map = new mapboxgl.Map({
     zoom: 20
 });
 
-var direction = 0, manual = false, speed = 1;
-
 // create a GeoJSON point to serve as a starting point
 var point = {
     "type": "Point",
     "coordinates": [-122.1248, 37.4183]
 };
 
-function setPosition() {
-    map.getSource('drone').setData(point);
-    map.setCenter(point.coordinates);
-    map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
-}
+// for time stamping
+var time = Date.now || function() {
+  return +new Date;
+};
+var gametime = time();
 
 map.on('load', function () {
     // add the GeoJSON above to a new vector tile source
@@ -99,14 +99,55 @@ map.on('load', function () {
         }
     });
 
+    var dialog = $('<p>Select a mode.</p>').dialog({
+                    buttons: {
+                        "Train": function() {run(0);dialog.dialog('close');},
+                        "Simulation":  function() {run(1);dialog.dialog('close');},
+                        "Testing":  function() {run(2);dialog.dialog('close');}
+                    }
+                });
+
 });
-var ctr = 0;
-async function update_map(items){
+
+function run(mode) {
+    if(mode == 1) {
+        simulation();
+    }
+    if(mode == 0) {
+        Train();
+    }
+    if(mode == 2) {
+        Test();
+    }
+}
+
+function setPosition() {
+    map.getSource('drone').setData(point);
+    map.setCenter(point.coordinates);
+    map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
+}
+
+function move(action) {
+    if (action == 0 || action == 1) {
+        point.coordinates[0] += speed * Math.sin(direction) / 100000;
+        point.coordinates[1] += speed * Math.cos(direction) / 100000;
+        map.getSource('drone').setData(point);
+        map.setCenter(point.coordinates);
+    } else {
+        map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
+    }
+    trainref.child(gametime).push({'latitude':point.coordinates[0], 
+                   'longitude':point.coordinates[1],
+                   'direction': direction,
+                   'actions':action});
+}
+
+async function update_map(total_frames){
     setTimeout(function() {  //Beginning of code that should run AFTER the timeout
-     point.coordinates[0] = latitudes[ctr];
-     point.coordinates[1] = longitudes[ctr];
-     direction = directions[ctr];
-     action = actions[ctr];
+     point.coordinates[0] = latitudes[frame_id];
+     point.coordinates[1] = longitudes[frame_id];
+     direction = directions[frame_id];
+     action = actions[frame_id];
      if (action>2){
         map.easeTo({
                     bearing: direction * (180 / Math.PI),
@@ -115,38 +156,124 @@ async function update_map(items){
     } else {
         setPosition();
      }
-     if (ctr < items) {
-        update_map(items);
-     }
-     ctr++;
-    //lots more code
+    var curtime = time();
+    screenname = curtime.toString() + ".png";
+    time_stamps.push(screenname);
+    actions_took.push(action);
+    if (frame_id >= total_frames-1){
+        window.alert("Data collection complete. Check SDrone.csv!");
+        exportToCsv('SDrone.csv', [
+        ['screen',time_stamps], 
+        ['action',actions_took],
+        ]);
+     } else {
+        frame_id++;
+        update_map(total_frames);
+     }  
     },100); 
 }
 
-testref.child('train').once('value').then(function(snapshot) {
-  var users = snapshot.val();
-  var uids = Object.keys(users);
-  var items = uids.length;
-   for (i=0; i<items; i++){
-        var latitude = parseFloat(snapshot.child(uids[i]).child('latitude').val());
-        var longitude = parseFloat(snapshot.child(uids[i]).child('longitude').val());
-        var action = parseInt(snapshot.child(uids[i]).child('actions').val());
-        direction = parseFloat(snapshot.child(uids[i]).child('direction').val());
+function Train(){
+    // Add manual control of the airplane with left and right arrow keys
+    document.body.addEventListener('keydown', function (e) {
+    if (e.which === 65) { // left 0001
+        direction -= 0.1;
+        map.easeTo({
+                    bearing: direction * (180 / Math.PI),
+        });
+        manual = true;
+        move(4);
+    }
+    if (e.which === 68) { // right 0010
+        direction += 0.1;
+        map.easeTo({
+                    bearing: direction * (180 / Math.PI),
+        });
+        manual = true;
+        move(3);
+    }
+    if (e.which === 87) { // up 1000
+        manual = true;
+        move(0);
+        e.preventDefault(0);
+    }
+    if (e.which === 83) { // down 0100
+        manual = true;
+        move(1);
+        e.preventDefault();
+    }
+    }, true);
+}
+
+function simulation(){
+    simref.child('train').once('value').then(function(snapshot) {
+    var games = snapshot.val();
+    var gameids = Object.keys(games);
+    var total_games = gameids.length-1;
+    var game_id = gameids[total_games];//latest game
+    var game = snapshot.child(game_id).val();//latest game
+    var uids = Object.keys(game);
+    var total_frames = uids.length;
+    for (i=0; i<total_frames; i++){
+        var gameinst = snapshot.child(game_id);
+        var latitude = parseFloat(gameinst.child(uids[i]).child('latitude').val());
+        var longitude = parseFloat(gameinst.child(uids[i]).child('longitude').val());
+        var action = parseInt(gameinst.child(uids[i]).child('actions').val());
+        direction = parseFloat(gameinst.child(uids[i]).child('direction').val());
         latitudes.push(latitude);
         longitudes.push(longitude);
         directions.push(direction);
         actions.push(action);    
     }
-    return items;
-  
-}).then(function(items) {
-  // All promises succeeded.
-    update_map(items);
+    return total_frames;
+    }).then(function(total_frames) {
+        update_map(total_frames);
+    }, function(error) {
+    // Something went wrong.
+    console.error(error);
+    });
+}
 
-}, function(error) {
-  // Something went wrong.
-  console.error(error);
-});
+function exportToCsv(filename, rows) {
+        var processRow = function (row) {
+            var finalVal = '';
+            for (var j = 0; j < row.length; j++) {
+                var innerValue = row[j] === null ? '' : row[j].toString();
+                if (row[j] instanceof Date) {
+                    innerValue = row[j].toLocaleString();
+                };
+                var result = innerValue.replace(/"/g, '""');
+                if (result.search(/("|,|\n)/g) >= 0)
+                    result = '"' + result + '"';
+                if (j > 0)
+                    finalVal += ',';
+                finalVal += result;
+            }
+            return finalVal + '\n';
+        };
+
+        var csvFile = '';
+        for (var i = 0; i < rows.length; i++) {
+            csvFile += processRow(rows[i]);
+        }
+
+        var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+        if (navigator.msSaveBlob) { // IE 10+
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            var link = document.createElement("a");
+            if (link.download !== undefined) { // feature detection
+                // Browsers that support HTML5 download attribute
+                var url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+    }
 
 map.addControl(new mapboxgl.FullscreenControl());
 </script>
