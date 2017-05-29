@@ -3,9 +3,16 @@ import ctypes
 import numpy as np
 import win32api as wapi
 import win32gui, win32ui, win32con, win32api
+import cv2, os
+import numpy as np
+import matplotlib.image as mpimg
+from sklearn.utils import shuffle
 
 SendInput = ctypes.windll.user32.SendInput
-
+IMAGE_WIDTH           = 320
+IMAGE_HEIGHT          = 240
+IMAGE_CHANNELS        = 1 
+INPUT_SHAPE = (IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS)
 
 W = 0x11
 A = 0x1E
@@ -150,3 +157,33 @@ def get_pressed_key():
 	if 'T' in keys:
 		exit(0)
 	return output
+
+def load_image(data_dir, image_file):
+    return mpimg.imread(os.path.join(data_dir, image_file.strip()))
+
+def resize(image):
+    return cv2.resize(image, (IMAGE_WIDTH, IMAGE_HEIGHT), cv2.INTER_AREA)
+
+def preprocess(image):
+    image = resize(image)
+    return image
+
+def batch_generator(data_dir, image_paths, actions, batch_size, is_training):
+    """
+    Generate training image give image paths and associated steering angles
+    """
+    images = np.empty([batch_size, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS])
+    actions_to_take = np.empty([batch_size, 4])
+    while True:
+        i = 0
+        for index in np.random.permutation(len(image_paths)):
+            image_file = image_paths[index]
+            action = actions[index]
+            image = load_image(data_dir, image_file)
+            image = preprocess(image)
+            images[i] = np.reshape(image, (-1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS))
+            actions_to_take[i] = action
+            i += 1
+            if i == batch_size:
+                break
+        yield images, actions_to_take

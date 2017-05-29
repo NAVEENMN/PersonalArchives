@@ -20,25 +20,43 @@
     <style>
         body { margin:0; padding:0; }
         #map { position:absolute; top:0; bottom:0; width:100%; }
-    </style>
+    </style>w
 </head>
 <body>
 <div id='map'></div>
 <script>
 
-var latitudes = [];
-var longitudes = [];
-var directions = [];
-var actions = [];
-var time_stamps = [];
-var actions_took =[];
-var frame_id = 0;
-var mode = 0;// 0:Train, 1:Simulation, 2:Testing
-var direction = 0, manual = false, speed = 1;
+var latitudes    = [];
+var longitudes   = [];
+var directions   = [];
+var actions      = [];
+var time_stamps  = [];
+var actions_took = [];
+var frame_id     = 0;
+// 0:Train, 1:Simulation, 2:Testing
+var mode         = 0;
+var direction    = 0;
+FORWARD          = 0 // index 1 --> 1000
+BACKWARD         = 1 // index 2 --> 0100
+LEFT             = 2 // index 3 --> 0010
+RIGHT            = 3 // index 4 --> 0001
+
+// Randomly pick a starting point
+var start_points =[
+[-122.1248, 37.4183],
+[-122.124039, 37.6133],
+[-122.2656, 37.51120],
+[-122.02072, 37.35828],
+[-122.02072, 37.35828],
+];
+start_location = start_points[Math.floor((Math.random() * start_points.length))];
+start_latitude = start_location[0];
+start_longitude = start_location[1];
 
 // Initialize Firebase
 var trainref = new Firebase('https://sdrone-9ae10.firebaseio.com/train/');
-var simref = new Firebase('https://sdrone-9ae10.firebaseio.com/');
+var testref  = new Firebase('https://sdrone-9ae10.firebaseio.com/');
+var simref  = new Firebase('https://sdrone-9ae10.firebaseio.com/');
 
 // Setup MapBox
 mapboxgl.accessToken = 'pk.eyJ1IjoibXlzb3JuMSIsImEiOiIwODY0MDQ0ZTdiYTViYmU0ZTZiOGI4OTU5MjQxZGY1NCJ9.elqMFi4oQtFFjYXbW2Oxig';
@@ -47,14 +65,14 @@ var map = new mapboxgl.Map({
     style: 'mapbox://styles/mapbox/dark-v9',
     bearing: -10,
     pitch: 60,
-    center: [-122.1248, 37.4183],
+    center: [start_latitude, start_longitude],
     zoom: 20
 });
 
 // create a GeoJSON point to serve as a starting point
 var point = {
     "type": "Point",
-    "coordinates": [-122.1248, 37.4183]
+    "coordinates": [start_latitude, start_longitude]
 };
 
 // for time stamping
@@ -111,7 +129,9 @@ map.on('load', function () {
 
 function run(mode) {
     if(mode == 1) {
-        simulation();
+        setTimeout(function() {  
+            simulation();
+        },2000);
     }
     if(mode == 0) {
         Train();
@@ -121,6 +141,15 @@ function run(mode) {
     }
 }
 
+function post(gametime, screenname, action){
+    var url = "http://localhost:8080/";
+    var params = "screenname="+screenname+"&action="+action+"&gametime="+gametime+"=";
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.send(params);
+}
+
 function setPosition() {
     map.getSource('drone').setData(point);
     map.setCenter(point.coordinates);
@@ -128,9 +157,14 @@ function setPosition() {
 }
 
 function move(action) {
-    if (action == 0 || action == 1) {
-        point.coordinates[0] += speed * Math.sin(direction) / 100000;
-        point.coordinates[1] += speed * Math.cos(direction) / 100000;
+    if (action < 2) {
+        if (action == FORWARD) {
+            point.coordinates[0] +=  Math.sin(direction) / 100000;
+            point.coordinates[1] +=  Math.cos(direction) / 100000;
+        } else {
+            point.coordinates[0] -=  Math.sin(direction) / 100000;
+            point.coordinates[1] -=  Math.cos(direction) / 100000;
+        }
         map.getSource('drone').setData(point);
         map.setCenter(point.coordinates);
     } else {
@@ -161,76 +195,97 @@ async function update_map(total_frames){
     time_stamps.push(screenname);
     actions_took.push(action);
     if (frame_id >= total_frames-1){
-        window.alert("Data collection complete. Check SDrone.csv!");
-        exportToCsv('SDrone.csv', [
+        window.alert("Data collection complete. Check "+gametime+".csv!");
+        exportToCsv(gametime+'.csv', [
         ['screen',time_stamps], 
         ['action',actions_took],
+        ['gameid',gametime]
         ]);
      } else {
         frame_id++;
         update_map(total_frames);
+        post(gametime, screenname, action); 
      }  
-    },100); 
+    },200); 
+}
+
+function Test(){
+    testref.child('test').on('child_changed', function (snapshot) {
+        var data = snapshot.val();
+        var key = snapshot.key();
+        if(key == "latitude"){
+            point.coordinates[0] = data;
+        }
+        if(key == "longitude"){
+            point.coordinates[1] = data;
+        }
+        if(key == "direction"){
+            direction = data;
+        }
+        map.easeTo({
+            bearing: direction * (180 / Math.PI),
+        });
+        setPosition();
+    });
 }
 
 function Train(){
     // Add manual control of the airplane with left and right arrow keys
     document.body.addEventListener('keydown', function (e) {
-    if (e.which === 65) { // left 0001
+    if (e.which === 65) { // pressed a
         direction -= 0.1;
         map.easeTo({
                     bearing: direction * (180 / Math.PI),
         });
-        manual = true;
-        move(4);
+        move(LEFT);
     }
-    if (e.which === 68) { // right 0010
+    if (e.which === 68) { // pressed d
         direction += 0.1;
         map.easeTo({
                     bearing: direction * (180 / Math.PI),
         });
-        manual = true;
-        move(3);
+        move(RIGHT);
     }
-    if (e.which === 87) { // up 1000
-        manual = true;
-        move(0);
+    if (e.which === 87) { // pressed w
+        move(FORWARD);
         e.preventDefault(0);
     }
-    if (e.which === 83) { // down 0100
-        manual = true;
-        move(1);
+    if (e.which === 83) { // pressed s
+        move(BACKWARD);
         e.preventDefault();
+    }
+    if (e.which === 82) { // pressed r
+        location.reload();
     }
     }, true);
 }
 
 function simulation(){
     simref.child('train').once('value').then(function(snapshot) {
-    var games = snapshot.val();
-    var gameids = Object.keys(games);
-    var total_games = gameids.length-1;
-    var game_id = gameids[total_games];//latest game
-    var game = snapshot.child(game_id).val();//latest game
-    var uids = Object.keys(game);
-    var total_frames = uids.length;
-    for (i=0; i<total_frames; i++){
-        var gameinst = snapshot.child(game_id);
-        var latitude = parseFloat(gameinst.child(uids[i]).child('latitude').val());
-        var longitude = parseFloat(gameinst.child(uids[i]).child('longitude').val());
-        var action = parseInt(gameinst.child(uids[i]).child('actions').val());
-        direction = parseFloat(gameinst.child(uids[i]).child('direction').val());
-        latitudes.push(latitude);
-        longitudes.push(longitude);
-        directions.push(direction);
-        actions.push(action);    
-    }
-    return total_frames;
+        var games = snapshot.val();
+        var gameids = Object.keys(games);
+        var total_games = gameids.length-1;
+        var game_id = gameids[total_games];//latest game
+        var game = snapshot.child(game_id).val();//latest game
+        var uids = Object.keys(game);
+        var total_frames = uids.length;
+        for (i=0; i<total_frames; i++){
+            var gameinst = snapshot.child(game_id);
+            var latitude = parseFloat(gameinst.child(uids[i]).child('latitude').val());
+            var longitude = parseFloat(gameinst.child(uids[i]).child('longitude').val());
+            var action = parseInt(gameinst.child(uids[i]).child('actions').val());
+            direction = parseFloat(gameinst.child(uids[i]).child('direction').val());
+            latitudes.push(latitude);
+            longitudes.push(longitude);
+            directions.push(direction);
+            actions.push(action);
+        }
+        return total_frames;
     }).then(function(total_frames) {
         update_map(total_frames);
     }, function(error) {
-    // Something went wrong.
-    console.error(error);
+        // Something went wrong.
+        console.error(error);
     });
 }
 
