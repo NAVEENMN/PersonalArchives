@@ -181,6 +181,7 @@ def batch_generator(data_dir, image_paths, actions, batch_size, is_training):
             action = actions[index]
             image = load_image(data_dir, image_file)
             image = preprocess(image)
+            image = cv2.Canny(image,10,120)
             images[i] = np.reshape(image, (-1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS))
             actions_to_take[i] = action
             i += 1

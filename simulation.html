@@ -13,10 +13,15 @@
     <script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.js"></script>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js"></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.js'></script>
+    <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.css' type='text/css' />
     <link rel="stylesheet" type="text/css" href="/css/normalize.css">
     <link rel="stylesheet" type="text/css" href="/css/result-light.css">
     <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/base/jquery-ui.css">
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
+<script type="text/javascript" src="https://rawgit.com/jieter/Leaflet.encoded/master/Polyline.encoded.js"></script>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css" />
     <style>
         body { margin:0; padding:0; }
         #map { position:absolute; top:0; bottom:0; width:100%; }
@@ -58,6 +63,8 @@ var trainref = new Firebase('https://sdrone-9ae10.firebaseio.com/train/');
 var testref  = new Firebase('https://sdrone-9ae10.firebaseio.com/');
 var simref  = new Firebase('https://sdrone-9ae10.firebaseio.com/');
 
+var directionsDiv = document.body.appendChild(document.createElement('div'));
+directionsDiv.id = 'navigation';
 // Setup MapBox
 mapboxgl.accessToken = 'pk.eyJ1IjoibXlzb3JuMSIsImEiOiIwODY0MDQ0ZTdiYTViYmU0ZTZiOGI4OTU5MjQxZGY1NCJ9.elqMFi4oQtFFjYXbW2Oxig';
 var map = new mapboxgl.Map({
@@ -81,30 +88,40 @@ var time = Date.now || function() {
 };
 var gametime = time();
 
+nav = "https://api.mapbox.com/directions/v5/mapbox/driving/"+start_latitude+","+start_longitude+";-122.02072,37.35828?&geometries=polyline&access_token="+mapboxgl.accessToken;
+
 map.on('load', function () {
     // add the GeoJSON above to a new vector tile source
     map.addSource('drone', { type: 'geojson', data: point });
-    map.addLayer({
-        "id": "drone-glow-strong",
-        "type": "circle",
-        "source": "drone",
-        "paint": {
-            "circle-radius": 5,
-            "circle-color": "#ffffff",
-            "circle-opacity": 0.4
-        }
-    });
 
-    map.addLayer({
-        "id": "drone-glow",
-        "type": "circle",
-        "source": "drone",
-        "paint": {
-            "circle-radius": 10,
-            "circle-color": "#ffffff",
-            "circle-opacity": 0.1
-        }
-    });
+    /*
+        map.loadImage('arrow.png', (error, image) => {
+            if (error) throw error;
+            map.addImage('arrow', image);
+            map.addLayer({
+                "id": "drone",
+                "type": "symbol",
+                "source": {
+                    "type": "geojson",
+                    "data": {
+                        "type": "FeatureCollection",
+                        "features": [{
+                            "type": "Feature",
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [0, 0]
+                            }
+                        }]
+                    }
+                },
+                "layout": {
+                    "icon-image": "arrow",
+                    "icon-size": 0.25
+                }
+            });
+        });
+
+*/
 
     map.addLayer({
         "id": "drone",
@@ -113,7 +130,53 @@ map.on('load', function () {
         "layout": {
             "icon-image": "airport-11",
             "icon-rotation-alignment": "map",
-            "icon-size":2.5
+            "icon-size":3
+        }
+    });
+
+    $.ajax({
+        url: nav,
+        beforeSend: function(xhr) {
+             xhr.setRequestHeader("Authorization", "Bearer 6QXNMEMFHNY4FJ5ELNFMP5KRW52WFXN5")
+        }, success: function(data){
+            var geopoints = [];
+            var geo;
+            var points = Object.keys(data['routes']);
+            for(i=0; i<points.length;i++){
+                geo = data['routes'][i]['geometry'];
+                var coordinatepoints = L.Polyline.fromEncoded(geo).getLatLngs();
+                for(p=0; p<coordinatepoints.length;p++){
+                    lat = coordinatepoints[p].lng;
+                    longi = coordinatepoints[p].lat;
+                    geopoints.push([lat,longi]);
+                }
+            }
+           //window.alert(geopoints)
+            //process the JSON data etc
+            map.addLayer({
+            "id": "route",
+            "type": "line",
+            "source": {
+                "type": "geojson",
+                "data": {
+                   "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": geopoints
+                    }
+                }
+            },
+            "layout": {
+                "line-join": "round",
+                "line-cap": "round"
+            },
+            "paint": {
+                "line-color": "#888",
+                "line-width": 8
+            }
+        });
+
         }
     });
 
@@ -247,6 +310,7 @@ function Train(){
         move(RIGHT);
     }
     if (e.which === 87) { // pressed w
+
         move(FORWARD);
         e.preventDefault(0);
     }
@@ -255,7 +319,8 @@ function Train(){
         e.preventDefault();
     }
     if (e.which === 82) { // pressed r
-        location.reload();
+        map.removeControl(navigation);
+        //location.reload();
     }
     }, true);
 }
