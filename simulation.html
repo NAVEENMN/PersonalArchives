@@ -52,6 +52,8 @@ var start_points =[
 [-122.06720435383676, 37.337637693859854],
 [-122.06831987625098, 37.33828067882066],
 [-122.124039, 37.613780000000155],
+[-122.12630321069842, 37.41974027425775],
+[-122.12621263521405, 37.4196779166517],
 [-122.02072, 37.35828],
 ];
 start_location = start_points[Math.floor((Math.random() * start_points.length))];
@@ -241,7 +243,7 @@ async function update_map(total_frames){
         update_map(total_frames);
         post(gametime, screenname, action); 
      }  
-    },100); 
+    },200); 
 }
 
 function Test(){

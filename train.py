@@ -44,9 +44,16 @@ def setup():
     args = parser.parse_args()
     return args
 
+def visulize_a_image(image_array, action):
+    image = np.reshape(image_array, (IMAGE_HEIGHT, IMAGE_WIDTH))
+    cv2.putText(image,str(action), (10,10), cv2.FONT_HERSHEY_SIMPLEX, 0.3, 255, 1)
+    cv2.imshow("drone", image)
+    cv2.waitKey(1)
+
 def load_data(args):
     X = list()
     y = list()
+    test_image = None
     for replay in glob.glob(CSV_PATH+'*.csv'):
         df = pd.read_csv(replay, sep=',',header=None)
         print(replay)
@@ -65,6 +72,8 @@ def load_data(args):
                 if screen in data.keys():
                     X.append(data[screen])
                     y.append(action)
+                    test_image = data[screen]
+                    visulize_a_image(test_image, action)
         else:
             for x in range(0, len(screens)):
                 img = dir_path+"\\"+screens[0][x]
@@ -72,6 +81,7 @@ def load_data(args):
                     action = to_categorical(actions[0][x], num_classes=ACTIONS)  
                     X.append(img)
                     y.append(action)
+    cv2.destroyAllWindows()
     c = list(zip(X, y))
     random.shuffle(c)
     X, y = zip(*c)
