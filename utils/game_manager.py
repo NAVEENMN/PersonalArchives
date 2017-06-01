@@ -165,10 +165,15 @@ def resize(image):
     return cv2.resize(image, (IMAGE_WIDTH, IMAGE_HEIGHT), cv2.INTER_AREA)
 
 def preprocess(image):
-    image = resize(image)
-    return image
+    screen = cv2.resize(image, (IMAGE_WIDTH, IMAGE_HEIGHT), cv2.INTER_AREA)
+    screen = cv2.cvtColor(screen, cv2.COLOR_RGB2GRAY)
+    blur = cv2.GaussianBlur(screen,(5,5),0)
+    ret3,l1 = cv2.threshold(blur,52,150,cv2.THRESH_BINARY)
+    ret3,l2 = cv2.threshold(blur,68,255,cv2.THRESH_BINARY)
+    res = cv2.addWeighted(l1,0.5,l2,0.5,0)
+    return res
 
-def batch_generator(data_dir, image_paths, actions, batch_size, is_training):
+def batch_generator(data_frm_pickel, data_dir, image_paths, actions, batch_size, is_training):
     """
     Generate training image give image paths and associated steering angles
     """
@@ -179,10 +184,12 @@ def batch_generator(data_dir, image_paths, actions, batch_size, is_training):
         for index in np.random.permutation(len(image_paths)):
             image_file = image_paths[index]
             action = actions[index]
-            image = load_image(data_dir, image_file)
-            image = preprocess(image)
-            image = cv2.Canny(image,10,120)
-            images[i] = np.reshape(image, (-1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS))
+            if data_frm_pickel:
+                image = image_file
+                images[i] = image
+            else:
+                image = load_image(data_dir, image_file)
+                images[i] = np.reshape(image, (-1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS))
             actions_to_take[i] = action
             i += 1
             if i == batch_size:

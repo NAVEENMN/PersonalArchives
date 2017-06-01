@@ -5,6 +5,8 @@ import json
 import keras
 import utils
 import argparse
+import random
+import pickle
 import numpy as np
 import pandas as pd
 import utils.game_manager as gm
@@ -15,7 +17,7 @@ from sklearn.model_selection import train_test_split
 from keras.layers import Lambda, Conv2D, MaxPooling2D, Dropout, Dense, Flatten
 
 Train          = True
-
+data_frm_pickel= True
 model          = None
 IMAGE_WIDTH    = 320
 IMAGE_HEIGHT   = 240
@@ -50,18 +52,29 @@ def load_data(args):
         print(replay)
         dir_path = replay.split("\\")[1]
         dir_path = dir_path.split(".")[0]
-        dir_path = dir_path+"\\"
         screens = df[1][0]
         actions = df[1][1]
         screens = pd.DataFrame(screens.split(','))
         actions = pd.DataFrame(actions.split(','))
-        for x in range(0, len(screens)):
-            img = dir_path+screens[0][x]
-            print(IMAGES_PATH+img)
-            if os.path.isfile(IMAGES_PATH+img): 
-                action = to_categorical(actions[0][x], num_classes=ACTIONS)  
-                X.append(img)
-                y.append(action)
+        if data_frm_pickel:
+            file_path = IMAGES_PATH+"\\"+dir_path
+            data = pickle.load( open( file_path, "rb" ) )
+            for x in range(0, len(screens)):
+                screen = screens[0][x]
+                action = to_categorical(actions[0][x], num_classes=ACTIONS)
+                if screen in data.keys():
+                    X.append(data[screen])
+                    y.append(action)
+        else:
+            for x in range(0, len(screens)):
+                img = dir_path+"\\"+screens[0][x]
+                if os.path.isfile(IMAGES_PATH+img): 
+                    action = to_categorical(actions[0][x], num_classes=ACTIONS)  
+                    X.append(img)
+                    y.append(action)
+    c = list(zip(X, y))
+    random.shuffle(c)
+    X, y = zip(*c)
     X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=args.test_size, random_state=0)
     print(len(X_train))
     print(len(y_train))
@@ -108,11 +121,11 @@ def train_model(model, args, X_train, X_valid, y_train, y_valid):
     model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adadelta(),
               metrics=['accuracy'])
-    model.fit_generator(gm.batch_generator(args.data_dir, X_train, y_train, args.batch_size, True),
+    model.fit_generator(gm.batch_generator(data_frm_pickel, args.data_dir, X_train, y_train, args.batch_size, True),
                         args.samples_per_epoch,
                         args.nb_epoch,
                         max_q_size=1,
-                        validation_data=gm.batch_generator(args.data_dir, X_valid, y_valid, args.batch_size, False),
+                        validation_data=gm.batch_generator(data_frm_pickel, args.data_dir, X_valid, y_valid, args.batch_size, False),
                         nb_val_samples=len(X_valid),
                         callbacks=[checkpoint],
                         verbose=1)
@@ -121,9 +134,7 @@ def fly_drone(args):
     model = load_model(args.model)
     for x in range(0, 5):
         screen = gm.grab_screen(region=(0, 40 , 1920, 1080))
-        screen = cv2.resize(screen, (IMAGE_WIDTH, IMAGE_HEIGHT), cv2.INTER_AREA)
-        screen = cv2.cvtColor( screen, cv2.COLOR_RGB2GRAY )
-        screen = np.reshape(screen, (-1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNELS)) 
+        screen = gm.preprocess(screen) 
         print(screen.shape)
         action = model.predict(screen, batch_size=1)
         print(action[0])
@@ -149,7 +160,7 @@ def train():
 
     #load data
     X_train, X_valid, y_train, y_valid = load_data(args)
-    
+
     #build model
     model = build_model(args)
 

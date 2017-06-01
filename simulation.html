@@ -49,9 +49,9 @@ RIGHT            = 3 // index 4 --> 0001
 // Randomly pick a starting point
 var start_points =[
 [-122.1248, 37.4183],
-[-122.124039, 37.6133],
-[-122.2656, 37.51120],
-[-122.02072, 37.35828],
+[-122.06720435383676, 37.337637693859854],
+[-122.06831987625098, 37.33828067882066],
+[-122.124039, 37.613780000000155],
 [-122.02072, 37.35828],
 ];
 start_location = start_points[Math.floor((Math.random() * start_points.length))];
@@ -70,8 +70,8 @@ mapboxgl.accessToken = 'pk.eyJ1IjoibXlzb3JuMSIsImEiOiIwODY0MDQ0ZTdiYTViYmU0ZTZiO
 var map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/dark-v9',
-    bearing: -10,
-    pitch: 60,
+    bearing: 0,
+    pitch: 0,
     center: [start_latitude, start_longitude],
     zoom: 20
 });
@@ -94,35 +94,6 @@ map.on('load', function () {
     // add the GeoJSON above to a new vector tile source
     map.addSource('drone', { type: 'geojson', data: point });
 
-    /*
-        map.loadImage('arrow.png', (error, image) => {
-            if (error) throw error;
-            map.addImage('arrow', image);
-            map.addLayer({
-                "id": "drone",
-                "type": "symbol",
-                "source": {
-                    "type": "geojson",
-                    "data": {
-                        "type": "FeatureCollection",
-                        "features": [{
-                            "type": "Feature",
-                            "geometry": {
-                                "type": "Point",
-                                "coordinates": [0, 0]
-                            }
-                        }]
-                    }
-                },
-                "layout": {
-                    "icon-image": "arrow",
-                    "icon-size": 0.25
-                }
-            });
-        });
-
-*/
-
     map.addLayer({
         "id": "drone",
         "type": "symbol",
@@ -130,10 +101,10 @@ map.on('load', function () {
         "layout": {
             "icon-image": "airport-11",
             "icon-rotation-alignment": "map",
-            "icon-size":3
+            "icon-size":4.0
         }
     });
-
+/*
     $.ajax({
         url: nav,
         beforeSend: function(xhr) {
@@ -179,7 +150,7 @@ map.on('load', function () {
 
         }
     });
-
+*/
     var dialog = $('<p>Select a mode.</p>').dialog({
                     buttons: {
                         "Train": function() {run(0);dialog.dialog('close');},
@@ -194,7 +165,7 @@ function run(mode) {
     if(mode == 1) {
         setTimeout(function() {  
             simulation();
-        },2000);
+        },4000);
     }
     if(mode == 0) {
         Train();
@@ -231,6 +202,10 @@ function move(action) {
         map.getSource('drone').setData(point);
         map.setCenter(point.coordinates);
     } else {
+        map.easeTo({
+                    bearing: direction * (180 / Math.PI),
+                    speed: 1.0,
+        });
         map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
     }
     trainref.child(gametime).push({'latitude':point.coordinates[0], 
@@ -245,14 +220,11 @@ async function update_map(total_frames){
      point.coordinates[1] = longitudes[frame_id];
      direction = directions[frame_id];
      action = actions[frame_id];
-     if (action>2){
-        map.easeTo({
+     setPosition();
+     map.easeTo({
                     bearing: direction * (180 / Math.PI),
-        });
-        map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
-    } else {
-        setPosition();
-     }
+     });
+    
     var curtime = time();
     screenname = curtime.toString() + ".png";
     time_stamps.push(screenname);
@@ -269,7 +241,7 @@ async function update_map(total_frames){
         update_map(total_frames);
         post(gametime, screenname, action); 
      }  
-    },200); 
+    },100); 
 }
 
 function Test(){
@@ -285,10 +257,11 @@ function Test(){
         if(key == "direction"){
             direction = data;
         }
+        setPosition();
         map.easeTo({
             bearing: direction * (180 / Math.PI),
         });
-        setPosition();
+        
     });
 }
 
@@ -296,21 +269,15 @@ function Train(){
     // Add manual control of the airplane with left and right arrow keys
     document.body.addEventListener('keydown', function (e) {
     if (e.which === 65) { // pressed a
-        direction -= 0.1;
-        map.easeTo({
-                    bearing: direction * (180 / Math.PI),
-        });
+        direction -= 0.0872665; // 5 degrees in radian
+        
         move(LEFT);
     }
     if (e.which === 68) { // pressed d
-        direction += 0.1;
-        map.easeTo({
-                    bearing: direction * (180 / Math.PI),
-        });
+        direction += 0.0872665;
         move(RIGHT);
     }
     if (e.which === 87) { // pressed w
-
         move(FORWARD);
         e.preventDefault(0);
     }
@@ -319,8 +286,7 @@ function Train(){
         e.preventDefault();
     }
     if (e.which === 82) { // pressed r
-        map.removeControl(navigation);
-        //location.reload();
+        location.reload();
     }
     }, true);
 }
