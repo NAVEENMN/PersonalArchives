@@ -2,65 +2,55 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="add46bb9-12e9-4422-bf19-b1bde2a41669" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/GAN.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensoroard/events.out.tfevents.1493772699.DESKTOP-CT74KE4" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensoroard/events.out.tfevents.1493773092.DESKTOP-CT74KE4" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensoroard/events.out.tfevents.1493773166.DESKTOP-CT74KE4" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/images/gen1.png" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/images/gen2.png" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/images/gen3.png" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/images/gen4.png" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/images/gen5.png" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/images/gen6.png" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/images/gen7.png" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/images/gen8.png" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/images/train1.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/images/train2.jpg" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-25000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-25000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-25000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-30000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-30000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-30000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-35000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-35000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-35000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-40000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-40000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-40000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-45000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-45000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-45000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-50000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-50000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-50000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-55000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-55000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-55000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-60000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-60000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-60000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-65000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-65000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-65000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-70000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-70000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-70000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-75000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-75000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-75000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-80000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-80000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-80000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-85000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-85000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-85000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-90000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-90000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-90000.meta" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-95000.data-00000-of-00001" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-95000.index" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-95000.meta" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498406615.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498408182.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498408414.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498408544.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498408584.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498408779.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498408814.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498408873.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498408954.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498409098.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498409211.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498409256.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498409899.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498409946.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498409989.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498413702.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498413907.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498414025.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498414197.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498414301.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498414963.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415026.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415093.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415151.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415173.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415202.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415280.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415330.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415360.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415637.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415681.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415793.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415886.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415921.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498415976.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498416000.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498416146.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498416172.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498416206.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498416352.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498416474.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498416641.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498416683.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498416747.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498416852.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498416904.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498417001.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498417362.DESKTOP-CT74KE4" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/Tensorboard/events.out.tfevents.1498417436.DESKTOP-CT74KE4" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-0.data-00000-of-00001" afterPath="$PROJECT_DIR$/models/pretrained_gan.ckpt-0.data-00000-of-00001" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-0.index" afterPath="$PROJECT_DIR$/models/pretrained_gan.ckpt-0.index" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-0.meta" afterPath="$PROJECT_DIR$/models/pretrained_gan.ckpt-0.meta" />
@@ -76,7 +66,8 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-5000.data-00000-of-00001" afterPath="$PROJECT_DIR$/models/pretrained_gan.ckpt-5000.data-00000-of-00001" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-5000.index" afterPath="$PROJECT_DIR$/models/pretrained_gan.ckpt-5000.index" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/pretrained_gan.ckpt-5000.meta" afterPath="$PROJECT_DIR$/models/pretrained_gan.ckpt-5000.meta" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/VAE_GAN.py" afterPath="$PROJECT_DIR$/VAE_GAN.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/checkpoint" afterPath="$PROJECT_DIR$/models/checkpoint" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -92,8 +83,8 @@
       <file leaf-file-name="VAE_GAN.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/VAE_GAN.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="634">
-              <caret line="291" column="63" lean-forward="false" selection-start-line="291" selection-start-column="63" selection-end-line="291" selection-end-column="63" />
+            <state relative-caret-position="4182">
+              <caret line="246" column="21" lean-forward="false" selection-start-line="246" selection-start-column="21" selection-end-line="246" selection-end-column="21" />
               <folding>
                 <element signature="e#22#59#0" expanded="true" />
               </folding>
@@ -101,11 +92,33 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="ops.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/ops.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="102">
+              <caret line="6" column="108" lean-forward="false" selection-start-line="6" selection-start-column="108" selection-end-line="6" selection-end-column="108" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
       <find>z_dimensions</find>
+      <find>visulize_a_image</find>
+      <find>tensorboard_summary</find>
+      <find>encoder</find>
+      <find>gen_latent_vec_ph</find>
+      <find>generator</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -115,13 +128,13 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/GAN.py" />
+        <option value="$PROJECT_DIR$/ops.py" />
         <option value="$PROJECT_DIR$/VAE_GAN.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-8" />
-    <option name="y" value="-8" />
+    <option name="x" value="-4" />
     <option name="width" value="1936" />
     <option name="height" value="1056" />
   </component>
@@ -140,6 +153,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -154,13 +169,12 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Latent_Vector_To_Image" />
+    <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -206,6 +220,24 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="GAN" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/VAE_GAN.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="ops" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="GAN" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ops.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -276,14 +308,16 @@
       <option name="_new_targetType" value="&quot;PATH&quot;" />
       <method />
     </configuration>
-    <list size="2">
+    <list size="3">
       <item index="0" class="java.lang.String" itemvalue="Python.GAN" />
       <item index="1" class="java.lang.String" itemvalue="Python.VAE_GAN" />
+      <item index="2" class="java.lang.String" itemvalue="Python.ops" />
     </list>
     <recent_temporary>
-      <list size="2">
+      <list size="3">
         <item index="0" class="java.lang.String" itemvalue="Python.VAE_GAN" />
-        <item index="1" class="java.lang.String" itemvalue="Python.GAN" />
+        <item index="1" class="java.lang.String" itemvalue="Python.ops" />
+        <item index="2" class="java.lang.String" itemvalue="Python.GAN" />
       </list>
     </recent_temporary>
   </component>
@@ -301,18 +335,19 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="0" />
+    <frame x="-4" y="0" width="1936" height="1056" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25266525" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25799572" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32827735" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3997833" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -320,7 +355,6 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -332,13 +366,65 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/GAN.py" />
-    <entry file="file://$PROJECT_DIR$/GAN.py" />
-    <entry file="file://$PROJECT_DIR$/GAN.py" />
     <entry file="file://$PROJECT_DIR$/VAE_GAN.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="634">
-          <caret line="291" column="63" lean-forward="false" selection-start-line="291" selection-start-column="63" selection-end-line="291" selection-end-column="63" />
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#22#59#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/VAE_GAN.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#22#59#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GAN.py" />
+    <entry file="file://$PROJECT_DIR$/GAN.py" />
+    <entry file="file://$PROJECT_DIR$/GAN.py" />
+    <entry file="file://$USER_HOME$/AppData/Local/conda/conda/envs/tensorflow/Lib/site-packages/numpy/core/fromnumeric.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="175">
+          <caret line="66" column="0" lean-forward="false" selection-start-line="66" selection-start-column="0" selection-end-line="66" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/AppData/Local/conda/conda/envs/tensorflow/Lib/site-packages/tensorflow/python/ops/variable_scope.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="175">
+          <caret line="656" column="0" lean-forward="false" selection-start-line="656" selection-start-column="0" selection-end-line="656" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ops.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" column="108" lean-forward="false" selection-start-line="6" selection-start-column="108" selection-end-line="6" selection-end-column="108" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/AppData/Local/conda/conda/envs/tensorflow/Lib/site-packages/tensorflow/python/framework/common_shapes.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="175">
+          <caret line="675" column="0" lean-forward="false" selection-start-line="675" selection-start-column="0" selection-end-line="675" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/VAE_GAN.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4182">
+          <caret line="246" column="21" lean-forward="false" selection-start-line="246" selection-start-column="21" selection-end-line="246" selection-end-column="21" />
           <folding>
             <element signature="e#22#59#0" expanded="true" />
           </folding>
