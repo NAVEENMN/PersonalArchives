@@ -24,8 +24,8 @@ IMAGE_CHANNEL = 1
 IMAGE_PIXELS = IMAGE_HEIGHT * IMAGE_WIDTH * IMAGE_CHANNEL
 
 # Image Parameters
-IMAGE_OUT_WIDTH = 1000
-IMAGE_OUT_HEIGHT = 1000
+IMAGE_OUT_WIDTH = 28
+IMAGE_OUT_HEIGHT = 28
 IMAGE_OUT_CHANNEL = 1
 IMAGE_OUT_PIXELS = IMAGE_OUT_HEIGHT * IMAGE_OUT_WIDTH * IMAGE_OUT_CHANNEL
 
@@ -33,7 +33,7 @@ IMAGE_OUT_PIXELS = IMAGE_OUT_HEIGHT * IMAGE_OUT_WIDTH * IMAGE_OUT_CHANNEL
 z_dim = 32
 learning_rate = 0.0001
 global batch_size
-batch_size = 1
+batch_size = 50
 
 # ======== Generative Network Hyper Parameter
 G_PADDING = "SAME"
@@ -370,7 +370,7 @@ def trainNetwork(sess, X, TRAIN=True):
 	tf.summary.scalar('d_on_generated_eval', d_on_generated)
 	tf.summary.scalar('d_on_real_eval', d_on_real)
 	
-	images_for_tensorboard = mag_generator(batch_size, z)
+	images_for_tensorboard = mag_generator(batch_size=batch_size, z=z, x=x, y=y, r=r)
 	tf.summary.image('Generated_images', images_for_tensorboard, 10)
 	merged = tf.summary.merge_all()
 	logdir = LOG
@@ -426,7 +426,7 @@ def trainNetwork(sess, X, TRAIN=True):
 		
 		if i % 1000 == 0:
 			ep = tf.random_normal((batch_size, ENCODER_LATENT_DIM), 0, 1, dtype=tf.float32)
-			images = sess.run(mag_generator(3, z=ep))
+			images = sess.run(mag_generator(batch_size, z=ep, x=x, y=y, r=r))
 			d_result = sess.run(discriminator(x_placeholder, keep_prob), {x_placeholder: images, keep_prob: 0.1})
 			print("TRAINING STEP", i, "AT", datetime.datetime.now())
 			for j in range(3):
@@ -472,7 +472,7 @@ def load_data():
 def main():
 	sess = tf.InteractiveSession()
 	X, Y = load_data()
-	trainNetwork(sess, X, TRAIN=False)
+	trainNetwork(sess, X, TRAIN=True)
 
 
 if __name__ == "__main__":
