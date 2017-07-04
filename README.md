@@ -2,16 +2,17 @@ Generative Adversarial Networks with Variational Autoencoder implementation on M
 =============
 
 files/directories:
-vae_gan.py : GAN Implementation
-data   : MNIST images seperated into classes
-images : Network generated images
-models : pretrained model
+1. vae_gan.py : GAN Implementation
+2. data   : MNIST images seperated into classes
+3. images : Network generated images
+4. models : pretrained model
 
 ## Dataset
 
 These models were trained using MNIST handwritten dataset.
 
 The training dataset consists of 7,781 28x28 gray-scale images and these images will look like these (sample: 1, 4)
+
 ![Alt text](images/3.jpg?raw=true "Training image sample from class 5")
 ![Alt text](images/4.jpg?raw=true "Training image sample from class 6")
 
@@ -34,6 +35,7 @@ When the network converges generator becomes so good at generating images that t
 ## Testing
 
 Images can be viewd on tensorboard. Here are few generated images.
+
 ![Alt text](images/1.gif?raw=true "generated image 1")
 ![Alt text](images/2.gif?raw=true "generated image 2")
 
