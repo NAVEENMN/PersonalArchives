@@ -1,4 +1,5 @@
 # value estimates monte carlo
+import os
 import gym
 import math
 import random
@@ -16,8 +17,10 @@ def bias_variable(shape):
 
 class network():
   def __init__(self):
-    W_fc1 = weight_variable([4, 2])
-    b_fc1 = bias_variable([2])
+    W_fc1 = weight_variable([4, 4])
+    b_fc1 = bias_variable([4])
+    W_fc2 = weight_variable([4, 2])
+    b_fc2 = bias_variable([2])
 
     # input layer
     self.input_ph = tf.placeholder("float", [None, 4])
@@ -26,7 +29,8 @@ class network():
 
     # hidden layers
     h_fc1 = tf.matmul(self.input_ph, W_fc1) + b_fc1
-    self.readout = h_fc1#tf.nn.sigmoid(h_fc1)
+    h_fc2 = tf.matmul(h_fc1, W_fc2) + b_fc2
+    self.readout = h_fc2#tf.nn.sigmoid(h_fc1)
 
     q_predictions = tf.reduce_sum(tf.multiply(self.readout, self.action_ph), reduction_indices=[1])
     new_q = q_predictions + 0.9 * (tf.subtract(self.returns_ph, q_predictions))
@@ -56,7 +60,7 @@ class game():
     self.memory = 5000
     self.batch_size = 100
     self.epoch = 10
-    self.eps = 0.5
+    self.eps = 0.0
     self.w = np.random.rand(4,2)
     '''
     self.w = np.array([[ 1.12408131,  0.39517095],
@@ -68,6 +72,12 @@ class game():
     self.D = deque()
     self.counter = 0
     self.sess.run(tf.global_variables_initializer())
+    self.model_path = "cart_model/"
+    self.saver = tf.train.Saver()
+    fil = len(os.listdir(self.model_path))
+    if fil > 0:
+      print("loaded", self.model_path)
+      self.saver.restore(self.sess, self.model_path)
 
   def take_action(self, state):
     input_ph = self.input_ph
@@ -108,6 +118,8 @@ class game():
     if self.counter % 20 == 0:
       self.eps = self.eps - 0.001
     self.env.reset()
+    if self.counter % 100 == 0:
+      save_path = self.saver.save(self.sess, self.model_path)
     return time_step
 
   def get_return_for_episode(self, states):
@@ -144,7 +156,7 @@ class game():
     g_batch = np.reshape(g_batch, [self.batch_size, -1])
 
     q_predictions = tf.reduce_sum(tf.multiply(read_out, action_ph), reduction_indice=[1])
-    new_q = q_predictions + 0.9 * (tf.subtract(gt_ph, q_predictions))
+    new_q = q_predictions + 0.1 * (tf.subtract(gt_ph, q_predictions))
     cost = tf.reduce_mean(tf.subtract(new_q, q_predictions))
     train_step = tf.train.AdamOptimizer(0.01).minimize(cost)
 
