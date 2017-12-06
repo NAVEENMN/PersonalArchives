@@ -6,33 +6,128 @@ IMAGE_CHANNEL = 3
 IMAGE_PIXELS = IMAGE_HEIGHT * IMAGE_WIDTH * IMAGE_CHANNEL
 BATCH_SHAPE = [None, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNEL]
 
+
+class reward_predictor():
+  def __init__(self, name, batch_size):
+    self.name = name
+    self.learning_rate = 0.001
+    self.layer = "Rw_"
+  def predict_reward(self, state_latent, reuse=False):
+    n = self.layer
+    with tf.variable_scope('Reward_FcNet', reuse=reuse):
+      reward = tf.layers.dense(state_latent, 1, name=n+"fc1")
+      return reward
+  def get_loss(self, source, target):
+    loss = tf.losses.mean_squared_error(predictions=source, labels=target)
+    return loss
+  def rw_train_step(self, loss):
+    lr = self.learning_rate
+    tvars = tf.trainable_variables()
+    rw_vars = [var for var in tvars if self.layer in var.name]
+    with tf.variable_scope(tf.get_variable_scope()) as scope:
+      train_step = tf.train.AdamOptimizer(lr).minimize(loss, var_list=rw_vars)
+    return train_step
+
+class sr_representation():
+  def __init__(self, name, batch_size):
+    self.name = name
+    self.layer = "Sr_"
+    self.latent_dim = 512
+    self.learning_rate = 0.001
+    self.gamma = 0.9
+    self.alpha = 0.8
+
+  def get_sucessor_feature(self, srlatent):
+    n = self.layer
+    with tf.variable_scope('Sucessor_FcNet'):
+      fc1 = tf.layers.dense(srlatent, 512/2, name=n+"fc1")
+      sr_feature = tf.layers.dense(fc1, 512, name=n+"fc2")
+    return sr_feature
+
+  def get_q_value(self, feature):
+    n = self.layer
+    with tf.variable_scope('Sucessor_Q_FcNet'):
+      fc1 = tf.layers.dense(feature, 512/2, name=n+"fc1")
+      fc2 = tf.layers.dense(fc1, 512/4, name=n+"fc2")
+      qvalues = tf.layers.dense(fc2, 18, name=n+"fc3")
+      return qvalues
+
+  def sr_train_step(self, statelatent, predicted, target):
+    lr = self.learning_rate
+    phi_s = statelatent #phi(st)
+    m_s_a = predicted #M(st,a)
+    M_s_a = target#M(st1, a`) a`=argmax(qv(m_st1_a'))
+    td_target = phi_s+(self.gamma*M_s_a)
+    td_error = tf.losses.mean_squared_error(labels=td_target, predictions=m_s_a)
+    tvars = tf.trainable_variables()
+    sr_vars = [var for var in tvars if self.layer in var.name]
+    with tf.variable_scope(tf.get_variable_scope()) as scope:
+      train_step = tf.train.AdamOptimizer(lr).minimize(td_error, var_list=sr_vars)
+    return train_step, td_error
+
+
+class action_encode_decoder():
+  def __init__(self, name, batch_size):
+    self.name = name
+    self.learning_rate = 0.001
+    self.latent_dim = 512
+    self.enc_name = "AtEnc_"
+    self.dec_name = "ATDec_"
+  def encode(self, action, reuse=False):
+    n = self.enc_name
+    with tf.variable_scope('Encoder_FcNet', reuse=reuse):
+      fc1 = tf.layers.dense(action, 1024, name=n +"fc1")
+      action_latent = tf.layers.dense(fc1, 512, name=n +"fc2")
+      return action_latent
+  def decode(self, action_latent, reuse=False):
+    n = self.dec_name
+    with tf.variable_scope('Decoder_FcNet', reuse=reuse):
+      fc1 = tf.layers.dense(action_latent, 512/2, name=n+"fc1")
+      action = tf.layers.dense(fc1, 18, name=n+"fc2")
+      return action
+
+  def get_loss(self, source, target):
+    with tf.name_scope('At_endecLoss'):
+      reconstruction_loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=source, labels=target)
+      return tf.reduce_mean(reconstruction_loss)
+
+  def train_step(self, loss):
+    lr = self.learning_rate
+    tvars = tf.trainable_variables()
+    at_encoder_vars = [var for var in tvars if self.enc_name in var.name]
+    at_decoder_vars = [var for var in tvars if self.dec_name in var.name]
+    at_vars = at_encoder_vars+at_decoder_vars
+    with tf.variable_scope(tf.get_variable_scope()) as scope:
+      train_step = tf.train.AdamOptimizer(lr).minimize(loss,var_list=at_vars)
+    return train_step
+
 class state_encoder_decoder():
   def __init__(self, name, batch_size):
     self.name = name
-    self.learning_rate = 0.0001
+    self.learning_rate = 0.001
     self.latent_dim = 512
     self.batch_size = batch_size
     self.enc_name = "StEnc_"
     self.dec_name = "StDec_"
   
-  def encode(self, image):
+  def encode(self, image, reuse=False):
     n = self.enc_name
-    with tf.variable_scope('Encoder_ConvNet'):
+    with tf.variable_scope('Encoder_ConvNet', reuse=reuse):
       input_st = image
       conv1 = tf.layers.conv2d(input_st,32,5, activation=tf.nn.relu, name=n+"conv1")
-      conv1 = tf.layers.max_pooling2d(conv1, 2, 2, name="E_conv1_pool")
+      conv1 = tf.layers.max_pooling2d(conv1, 2, 2, name=n+"conv1_pool")
       conv2 = tf.layers.conv2d(conv1, 64, 5, activation=tf.nn.relu, name=n+"conv2")
-      conv2 = tf.layers.max_pooling2d(conv2, 2, 2, name="E_conv2_pool")
+      conv2 = tf.layers.max_pooling2d(conv2, 2, 2, name=n+"conv2_pool")
       conv3 = tf.layers.conv2d(conv2, 128, 5, activation=tf.nn.relu, name=n+"conv3")
-      conv3 = tf.layers.max_pooling2d(conv3, 2, 2, name="E_conv3_pool")
+      conv3 = tf.layers.max_pooling2d(conv3, 2, 2, name=n+"conv3_pool")
       h_conv3_flat = tf.contrib.layers.flatten(conv3)
-      fc1 = tf.layers.dense(h_conv3_flat, 1024, name="E_fc1")
-      z = tf.layers.dense(fc1, self.latent_dim, name="E_fc2")
+      fc1 = tf.layers.dense(h_conv3_flat, 1024, name=n+"E_fc1")
+      z = tf.layers.dense(fc1, self.latent_dim, name=n+"E_fc2")
       return z
 
-  def decode(self, latent):
+  def decode(self, latent,reuse=False):
     n = self.dec_name
-    with tf.variable_scope('Decoder_ConvNet'):
+    with tf.variable_scope('Decoder_ConvNet',reuse=reuse):
       fc1 = tf.layers.dense(latent, IMAGE_PIXELS*4, name=n+"fc")
       D_fc1 = tf.reshape(fc1, [-1, IMAGE_WIDTH*2, IMAGE_HEIGHT*2, IMAGE_CHANNEL])
       D_fc1 = tf.contrib.layers.batch_norm(D_fc1, epsilon=1e-5, scope='bn')
@@ -47,7 +142,7 @@ class state_encoder_decoder():
       return image
 
   def get_loss(self, source, target):
-      with tf.name_scope('Loss'):
+      with tf.name_scope('St_endecLoss'):
         #target = tf.image.rgb_to_grayscale(target)
         batch_flatten = tf.reshape(target, [self.batch_size, -1])
         batch_reconstruct_flatten = tf.reshape(source, [self.batch_size, -1])
@@ -55,7 +150,8 @@ class state_encoder_decoder():
         loss2 = (1 - batch_flatten) * tf.log(1e-10 + 1 - batch_reconstruct_flatten)
         loss = loss1+loss2
         reconstruction_loss = -tf.reduce_sum(loss)
-        return tf.reduce_mean(reconstruction_loss)
+        per_px_loss = reconstruction_loss / IMAGE_PIXELS
+        return tf.reduce_mean(reconstruction_loss), per_px_loss
   
   def train_step(self, loss):
     lr = self.learning_rate
@@ -70,11 +166,18 @@ class state_encoder_decoder():
 def tensorboard_summary(data):
   st = data["source_image"]
   st_recon = data["reconstructed_image"]
+  sr_feature_recon = data["sr_feature"]
   with tf.name_scope("summary/images"):
-    source_image = (st+1) * 127.5
-    recon_image  = (st_recon+1) * 127.5
+    source_image = st*255.0#(st+1) * 127.5
+    recon_image  = st_recon*255.0#(st_recon+1) * 127.5
+    sr_feature_recon = sr_feature_recon *255.0
     image_to_tb = tf.concat([source_image, recon_image], axis=1)
-    tf.summary.image('src', source_image, 5)
-    tf.summary.image('recon', recon_image, 5)
+    image_to_tb = tf.concat([image_to_tb, sr_feature_recon], axis=1)
+    tf.summary.image('src', image_to_tb, 5)
+    #tf.summary.image('recon', recon_image, 5)
   with tf.name_scope("summary/losses"):
     tf.summary.scalar("StRecon_loss", data["reconstruction_loss"])
+    tf.summary.scalar("AtRecon_loss", data["action_recon_loss"])
+    tf.summary.scalar("RtPred_loss", data["reward_pred_loss"])
+    tf.summary.scalar("SR_loss", data["sr_loss"])
+

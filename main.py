@@ -14,10 +14,11 @@ IMAGE_PIXELS = IMAGE_HEIGHT * IMAGE_WIDTH * IMAGE_CHANNEL
 SHAPE_IM = [None, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNEL]
 SHAPE_RW = [None, 1]
 SHAPE_AC = [None, 18]
+SHAPE_SR = [None, 512]
 
-LOG = "/output/Tensorboard/"
-#LOG = "Tensorboard"
-BATCH_SIZE = 10
+#LOG = "/output/Tensorboard/"
+LOG = "Tensorboard"
+BATCH_SIZE = 32
 
 class network():
   def __init__(self):
@@ -25,56 +26,112 @@ class network():
     self.input_at_ph  = tf.placeholder("float", SHAPE_AC, name="input_at")
     self.input_rt1_ph = tf.placeholder("float", SHAPE_RW, name="input_rt1")
     self.input_st1_ph = tf.placeholder("float", SHAPE_IM, name="input_st1")
-    #self.st   = tf.image.rgb_to_grayscale(self.input_st_ph)
-    #self.st_1 = tf.image.rgb_to_grayscale(self.input_st1_ph)
+    self.input_sr_ph = tf.placeholder("float", SHAPE_SR, name="input_sr")
 
-    StEndec = state_encoder_decoder("state", BATCH_SIZE)
-    latent = StEndec.encode(self.input_st_ph)
-    self.reconstruction = StEndec.decode(latent)
-    self.reconstruction_loss = StEndec.get_loss(source=self.reconstruction, 
-                                              target=self.input_st_ph)
-    self.reconstruction_train_step = StEndec.train_step(self.reconstruction_loss)
+
+    with tf.device('/gpu:0'):
+      # State Encoder Decoder
+      StEndec = state_encoder_decoder("state", BATCH_SIZE)
+      self.statelatent = StEndec.encode(self.input_st_ph)
+      self.reconstruction = StEndec.decode(self.statelatent)
+      self.reconstruction_loss, self.per_px_loss = StEndec.get_loss(source=self.reconstruction,
+                                                                  target=self.input_st_ph)
+      self.reconstruction_train_step = StEndec.train_step(self.reconstruction_loss)
+
+      # Action Encoder Decoder
+      AtEndec = action_encode_decoder("action", BATCH_SIZE)
+      self.actionlatent = AtEndec.encode(self.input_at_ph)
+      self.action_reconstruction = AtEndec.decode(self.actionlatent)
+      self.action_reconstruction_loss = AtEndec.get_loss(source=self.action_reconstruction,
+                                                         target=self.input_at_ph)
+      self.at_reconstruction_train_step = AtEndec.train_step(self.action_reconstruction_loss)
+
+    with tf.device('/gpu:1'):
+      # Reward Predictor
+      RwPred = reward_predictor("reward", BATCH_SIZE)
+      RwPredicted = RwPred.predict_reward(state_latent=self.statelatent)
+      self.RwPredictionloss = RwPred.get_loss(source=RwPredicted, target=self.input_rt1_ph)
+      self.rw_train_step = RwPred.rw_train_step(self.RwPredictionloss)
+
+      # SR representation
+      self.srlatents = tf.multiply(self.statelatent, self.actionlatent, name="SROp")
+      sr = sr_representation(name="sr", batch_size=BATCH_SIZE)
+      self.sr_feature = sr.get_sucessor_feature(srlatent=self.srlatents)
+      self.q_values = RwPred.predict_reward(state_latent=self.sr_feature, reuse=True)
+      self.sr_train_step, self.sr_loss = sr.sr_train_step(statelatent=self.statelatent,
+                                                          predicted=self.sr_feature,
+                                                          target=self.input_sr_ph)
 
     data = dict()
     data["source_image"] = self.input_st_ph
+    data["sr_feature"] = StEndec.decode(self.input_sr_ph, reuse=True)
     data["reconstructed_image"] = self.reconstruction
-    data["reconstruction_loss"] = self.reconstruction_loss
+    data["reconstruction_loss"] = self.per_px_loss
+    data["action_recon_loss"] = self.action_reconstruction_loss
+    data["reward_pred_loss"]  = self.RwPredictionloss
+    data["sr_loss"] = self.sr_loss
     tensorboard_summary(data)
     self.merged = tf.summary.merge_all()
- 
-  def feed_forward(self, st_):
-    X_ = np.reshape(st_, [-1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNEL])
-    readout_t = self.reconstruction.eval(feed_dict={self.input_st_ph : X_})
-    return readout_t
 
-  def get_batch(self, D):
+  def get_sr_action(self, sess, st_):
+    # st_ : [1, 160, 160, 3]
+    S_ = np.reshape(st_, [-1, IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_CHANNEL])
+    acts = []
+    stats = []
+    for i in range(0, 18):
+      act = np.zeros([1, 18])
+      act[0][i] = 1
+      acts.append(act)
+      stats.append(S_)
+    S_ = np.reshape(stats, [18, IMAGE_WIDTH, IMAGE_HEIGHT, IMAGE_CHANNEL])
+    A_ = np.reshape(acts, [18, 18])
+    sr_features = sess.run(self.sr_feature, feed_dict={self.input_st_ph: S_, self.input_at_ph: A_})
+    q_values = sess.run(self.q_values, feed_dict={self.input_st_ph: S_, self.input_at_ph: A_})
+    index = np.argmax(q_values)
+    return sr_features, index
+
+  def get_batch(self, sess, D):
+
     minibatch = random.sample(D, BATCH_SIZE)
     shape_im = [BATCH_SIZE, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNEL]
     shape_ac = [BATCH_SIZE, 18]
     shape_rw = [BATCH_SIZE, 1]
+    shape_sr = [BATCH_SIZE, 512]
     st_batch  = np.reshape([d[0] for d in minibatch], shape_im)
-    st1_batch = np.reshape([d[3] for d in minibatch], shape_im)
     at_batch  = np.reshape([d[1] for d in minibatch], shape_ac)
     rt1_batch = np.reshape([d[2] for d in minibatch], shape_rw)
-    return st_batch, at_batch, rt1_batch, st1_batch
+    st1_batch = np.reshape([d[3] for d in minibatch], shape_im)
+    sr_batch = np.reshape([d[4] for d in minibatch], shape_sr)
+    return st_batch, at_batch, rt1_batch, st1_batch, sr_batch
 
   def train(self, sess, D, writer, step):
-    st_batch, at_batch, rt1_batch, st1_batch = self.get_batch(D)
+    st_batch, at_batch, rt1_batch, st1_batch, sr_batch = self.get_batch(sess, D)
 
     ops = []
-    feed_dict = {self.input_st_ph: st_batch}
+    feed_dict = {self.input_st_ph: st_batch,
+                 self.input_at_ph: at_batch,
+                 self.input_rt1_ph: rt1_batch,
+                 self.input_sr_ph: sr_batch}
     ops.append(self.reconstruction_train_step)
-    ops.append(self.reconstruction_loss)
-    _, loss = sess.run(ops, feed_dict=feed_dict)
+    ops.append(self.at_reconstruction_train_step)
+    ops.append(self.rw_train_step)
+    ops.append(self.sr_train_step)
+    sess.run(ops, feed_dict=feed_dict)
 
     if step % 10 == 0:
       ops = []
-      feed_dict = {self.input_st_ph: st_batch}
+      feed_dict = {self.input_st_ph: st_batch,
+                   self.input_at_ph: at_batch,
+                   self.input_rt1_ph: rt1_batch,
+                   self.input_sr_ph: sr_batch}
       ops.append(self.reconstruction_loss)
+      ops.append(self.action_reconstruction_loss)
+      ops.append(self.RwPredictionloss)
+      ops.append(self.sr_loss)
       ops.append(self.merged)
-      loss, summary = sess.run(ops, feed_dict=feed_dict)
+      stloss,atloss,rwloss,srloss,summary = sess.run(ops, feed_dict=feed_dict)
       writer.add_summary(summary, step)
-      print(step, loss)
+      print(step, stloss, atloss, rwloss, srloss)
 
 class game():
   def __init__(self):
@@ -86,19 +143,19 @@ class game():
     self.sess.run(tf.global_variables_initializer())
     self.writer = tf.summary.FileWriter(LOG, sess.graph)
 
-  def take_action(self, St):
-    #readout = self.net.feed_forward(St)
-    #print(readout.shape)
+  def take_action(self, sess, st):
     actions = np.zeros([1, 18])
-    At = self.env.action_space.sample()
-    actions[0][At-1] = 1
-    St1, Rt1, done, info = self.env.step(At)
-    St1 = ut.preprocess(St1)
-    Rt1 = 1
+    _, at = self.net.get_sr_action(sess, st)
+    actions[0][at] = 1
+    st1, rt1, done, info = self.env.step(at)
+    st1 = ut.preprocess(st1)
+    sr, index = self.net.get_sr_action(sess, st1)
+    sucessor_features = sr[index]
+    rt1 = 1
     if done:
-      Rt1 = -1
+      rt1 = -1
       self.env.reset()
-    Tr = [St, actions, Rt1, St1, done]
+    Tr = [st, actions, rt1, st1, sucessor_features, done]
     return Tr
 
   def run(self):
@@ -106,7 +163,7 @@ class game():
     St = ut.preprocess(St)
     for step in range(1000):
       #self.env.render()
-      Tr = self.take_action(St)
+      Tr = self.take_action(self.sess, St)
       St1 = Tr[3]
       self.D.append(Tr)
       if len(self.D) > 100:
