@@ -33,7 +33,7 @@ class sr_representation():
     self.name = name
     self.layer = "Sr_"
     self.latent_dim = 512
-    self.learning_rate = 0.001
+    self.learning_rate = 0.0001
     self.gamma = 0.9
     self.alpha = 0.8
 

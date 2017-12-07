@@ -17,6 +17,7 @@ SHAPE_AC = [None, 18]
 SHAPE_SR = [None, 512]
 
 #LOG = "/output/Tensorboard/"
+MODEL_PATH = "saved_models/"
 LOG = "Tensorboard"
 BATCH_SIZE = 32
 
@@ -140,15 +141,29 @@ class game():
     self.env = gym.make('MontezumaRevenge-v0')
     self.St = self.env.reset()
     self.net = network()
+    self.saver = tf.train.Saver()
     self.sess.run(tf.global_variables_initializer())
     self.writer = tf.summary.FileWriter(LOG, sess.graph)
+    checkpoint = tf.train.get_checkpoint_state(MODEL_PATH)
+    if checkpoint and checkpoint.model_checkpoint_path:
+      self.saver.restore(sess, checkpoint.model_checkpoint_path)
+      print("Successfully loaded:", checkpoint.model_checkpoint_path)
+    else:
+      print("Could not find old network weights")
+
+  def preprocess(self, img):
+    img = img[20:]
+    img = img[:160]
+    img = np.reshape(img, [1, 160, 160, 3])
+    img = img / 255.0  # (img/127.5)-1.0
+    return img
 
   def take_action(self, sess, st):
     actions = np.zeros([1, 18])
     _, at = self.net.get_sr_action(sess, st)
     actions[0][at] = 1
     st1, rt1, done, info = self.env.step(at)
-    st1 = ut.preprocess(st1)
+    st1 = self.preprocess(st1)
     sr, index = self.net.get_sr_action(sess, st1)
     sucessor_features = sr[index]
     rt1 = 1
@@ -158,22 +173,31 @@ class game():
     Tr = [st, actions, rt1, st1, sucessor_features, done]
     return Tr
 
-  def run(self):
+  def run(self, mode):
     St = self.St
     St = ut.preprocess(St)
-    for step in range(1000):
-      #self.env.render()
+    step = 0
+    while True:
+      self.env.render()
       Tr = self.take_action(self.sess, St)
       St1 = Tr[3]
       self.D.append(Tr)
       if len(self.D) > 100:
         self.D.popleft()
-        self.net.train(self.sess, self.D, self.writer, step)
+        if mode == "train":
+          self.net.train(self.sess, self.D, self.writer, step)
       St = St1
+      step = step + 1
+      if mode == "train":
+        if step % 10000 == 0:
+          save_path = self.saver.save(self.sess, MODEL_PATH + "pretrained.ckpt", global_step=step)
+          print("saved to %s" % save_path)
 
 def main():
+  modes = ["train", "test"]
+  mode = modes[1]
   gm = game()
-  gm.run()
+  gm.run(mode)
 
 if __name__ == "__main__":
   main()
