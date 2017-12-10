@@ -28,12 +28,77 @@ class reward_predictor():
       train_step = tf.train.AdamOptimizer(lr).minimize(loss, var_list=rw_vars)
     return train_step
 
+class Behavior():
+  def __init__(self, name, batch_size):
+    self.name = name
+    self.layer = "Con_"
+    self.learning_rate = 0.001
+    self.decision_space = 1
+  def predict_confidence(self, st_latent, reuse=False):
+    n = self.layer
+    with tf.variable_scope('Behavior_FcNet', reuse=reuse):
+      fc1 = tf.layers.dense(st_latent, 512 / 2, name=n + "fc1")
+      fc2 = tf.layers.dense(fc1, 512 / 4, name=n + "fc2")
+      confidence = tf.layers.dense(fc2, self.decision_space, name=n + "fc3")
+      confidence = tf.sigmoid(confidence)
+      return confidence
+
+  def habit_loss(self, confidence, reward):
+    with tf.name_scope('habit_Loss'):
+      loss = confidence * tf.log(1e-10*reward)
+      habitual_loss = -tf.reduce_mean(loss)
+    lr = self.learning_rate
+    tvars = tf.trainable_variables()
+    bhev_vars = [var for var in tvars if self.layer in var.name]
+    with tf.variable_scope(tf.get_variable_scope()) as scope:
+      habitual_train_step = tf.train.AdamOptimizer(lr).minimize(habitual_loss, var_list=bhev_vars)
+    return habitual_loss, habitual_train_step
+
+  def reestimation_loss(self, actions_pib, actions_ve):
+    with tf.name_scope('reestim_Loss'):
+      restim_loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=actions_pib,
+                                                            labels=actions_ve)
+      restim_loss = tf.reduce_mean(restim_loss)
+    lr = self.learning_rate
+    tvars = tf.trainable_variables()
+    bhev_vars = [var for var in tvars if self.layer in var.name]
+    with tf.variable_scope(tf.get_variable_scope()) as scope:
+      restim_train_step = tf.train.AdamOptimizer(lr).minimize(restim_loss, var_list=bhev_vars)
+    return restim_loss, restim_train_step
+
+class Actor():
+  def __init__(self, name, batch_size):
+    self.name = name
+    self.layer = "Ac_"
+    self.learning_rate = 0.001
+    self.action_space = 18
+  def predict(self, st_latent, reuse=False):
+    n = self.layer
+    with tf.variable_scope('Actor_FcNet', reuse=reuse):
+      fc1 = tf.layers.dense(st_latent, 512 / 2, activation=tf.nn.sigmoid, name=n+"fc1")
+      fc2 = tf.layers.dense(fc1, 512 / 4, activation=tf.nn.relu, name=n+"fc2")
+      fc3 = tf.layers.dense(fc2, 512 / 8, activation=tf.nn.sigmoid, name=n+"fc3")
+      fc4 = tf.layers.dense(fc3, 512 / 16, activation=tf.nn.relu, name=n+"fc4")
+      actions = tf.layers.dense(fc4, self.action_space, activation=tf.nn.sigmoid, name=n+"fc5")
+      return actions
+  def get_loss(self, source, target):
+    with tf.name_scope('AC_Loss'):
+      acpred_loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=source, labels=target)
+      return tf.reduce_mean(acpred_loss)
+  def train_step(self, loss):
+    lr = self.learning_rate
+    tvars = tf.trainable_variables()
+    ac_vars = [var for var in tvars if self.layer in var.name]
+    with tf.variable_scope(tf.get_variable_scope()) as scope:
+      train_step = tf.train.AdamOptimizer(lr).minimize(loss, var_list=ac_vars)
+    return train_step
+
 class sr_representation():
   def __init__(self, name, batch_size):
     self.name = name
     self.layer = "Sr_"
     self.latent_dim = 512
-    self.learning_rate = 0.001
+    self.learning_rate = 0.0001
     self.gamma = 0.9
     self.alpha = 0.8
 
@@ -180,4 +245,6 @@ def tensorboard_summary(data):
     tf.summary.scalar("AtRecon_loss", data["action_recon_loss"])
     tf.summary.scalar("RtPred_loss", data["reward_pred_loss"])
     tf.summary.scalar("SR_loss", data["sr_loss"])
+    tf.summary.scalar("HB_loss", data["hb_loss"])
+    tf.summary.scalar("AC_loss", data["ac_loss"])
 
