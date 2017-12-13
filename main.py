@@ -4,7 +4,7 @@ import numpy as np
 from collections import deque
 from PIL import Image
 import random
-from network import *
+from network_new import *
 
 IMAGE_HEIGHT = 160
 IMAGE_WIDTH = 160
