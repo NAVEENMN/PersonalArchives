@@ -122,6 +122,8 @@ def get_input():
 
           tokens, error_id = tokenize_expression(expression)
           tokens = list(filter(None, tokens))
+          if len(tokens) == 0:
+            error_id = Error_ID.ERR_NO_TOKENS
           if error_id != Error_ID.OK:
             return response, error_id
           response["expression"] = tokens

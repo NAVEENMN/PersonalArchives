@@ -31,4 +31,20 @@ out: results  {}
 in: q
 
 exiting
+
+# Errors
+
+in: query {}
+out:  error no tokens were provided
+in: query (salt|p7eer)
+out:  error expression contains invalid tokens
+in: query
+out:  error no expression provided
+in: in
+out:  error invalid input (valid: index | query)
+in: index hsad sada
+out:  error invalid document index
+in: index 4 g%#$
+out:  error tokens with non alphanumeric provided
+
 ```
