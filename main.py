@@ -78,7 +78,6 @@ def hand_op(db, token, oper):
   response = set()
   if len(token) == 0:
     return response, error
-  print(token)
   parts = token.split(oper)
   if len(parts) > 1:
     response, error = query_tokens(db, parts[0], parts[1], oper)
@@ -123,12 +122,12 @@ class simple_search_engine():
     print("simple search engine")
     print("--------------------")
     print(" press q anytime to quit")
-    print("example query styles:")
-    print("salt")
-    print("(salt&pepper)")
-    print("((salt&pepper)|butter)")
-    print("--------------------")
-    print(" ")
+    print(" example add index:")
+    print("   index 1 salt pepper fish")
+    print(" example query styles:")
+    print("   query salt")
+    print("   query ((salt&pepper)|butter)")
+    print("--------------------\n")
 
     self.errors = Errors()
     self.db = database()
@@ -157,6 +156,10 @@ class simple_search_engine():
       if (error_id != Error_ID.OK):
         print("out: ", self.errors.strn(error_id))
       else:
+        if len(response) > 0:
+          response = set(response)
+        else:
+          response = "{}"
         print("out: results ", response)
 
   def run(self):
@@ -171,8 +174,7 @@ class simple_search_engine():
      else:
         # --- exit program ----
         if response == "q":
-          print(" ")
-          print("exiting")
+          print("\nexiting")
           sys.exit(0)
         # ---- handle validated input ----
         self.handle_input(response)
