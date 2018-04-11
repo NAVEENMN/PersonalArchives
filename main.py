@@ -4,7 +4,7 @@ from errors import *
 from utils import *
 from os import sys
 
-# case when single token is queries
+# case when single token is queried
 def query_token(db, token):
   error = Error_ID.OK
   response, error_id = db.get_doc_ids()
@@ -19,7 +19,7 @@ def query_token(db, token):
 # case when multiple tokens are quried
 # example token_a & token_b, token_a | token_b
 
-# And operation
+# And operational function
 def comman_elements(lst_a, lst_b):
   a_set = set(lst_a)
   b_set = set(lst_b)
@@ -28,7 +28,7 @@ def comman_elements(lst_a, lst_b):
   else:
     return set()
 
-# Or operation
+# Or operational function
 def join_elements(lst_a, lst_b):
   a_set = set(lst_a)
   b_set = set(lst_b)
@@ -37,7 +37,11 @@ def join_elements(lst_a, lst_b):
   else:
     return set()
 
-def get_tokens(que):
+'''
+check_if_token_exists
+ map the queires and filter out docs with match queries
+'''
+def check_if_token_exists(que):
   error = Error_ID.OK
   query = que[0]
   db = que[1]
@@ -47,22 +51,34 @@ def get_tokens(que):
   response = list(filter(f, doc_ids))
   return response
 
+'''
+query_tokens
+  capture doc_ids returned by check_if_token_exists
+  and combine results from other query
+'''
 def query_tokens(db, query_a, query_b, operation):
   error = Error_ID.OK
   response, error_id = db.get_doc_ids()
   if (error_id != Error_ID.OK):
     error = error_id
   else:
-    response = list(map(get_tokens, [[query_a, db], [query_b, db]]))
+    response = list(map(check_if_token_exists, [[query_a, db], [query_b, db]]))
     if operation == "&":
       response = comman_elements(response[0], response[1])
     else:
       response = join_elements(response[0], response[1])
   return response, error
 
+'''
+hand_op:
+  A wrapper function to handle queries
+'''
 def hand_op(db, token, oper):
   error = Error_ID.OK
-  response = None
+  response = set()
+  if len(token) == 0:
+    return response, error
+  print(token)
   parts = token.split(oper)
   if len(parts) > 1:
     response, error = query_tokens(db, parts[0], parts[1], oper)
@@ -77,7 +93,7 @@ def merge(res1, res2, oper):
     result = join_elements(res1, res2)
   return result
 
-def foo(db, token):
+def _map(db, token):
   error = Error_ID.OK
   response = None
   if "&" in token:
@@ -89,20 +105,28 @@ def foo(db, token):
   else:
     return set()
 
+'''
+reduce_results:
+  combine all captured results
+'''
 def reduce_results(db, query):
   error = Error_ID.OK
   if len(query) == 1:
-    response = foo(db, query[0])
+    response = _map(db, query[0])
   else:
-    result = foo(db, query[0])
-    response = reduce(lambda x,y: merge(foo(db, x), foo(db, y[1:]), y[0]), query)
+    result = _map(db, query[0])
+    response = reduce(lambda x,y: merge(_map(db, x), _map(db, y[1:]), y[0]), query)
   return response, error
 
 class simple_search_engine():
   def __init__(self):
     print("simple search engine")
     print("--------------------")
-    print(" press q anything to quit")
+    print(" press q anytime to quit")
+    print("example query styles:")
+    print("salt")
+    print("(salt&pepper)")
+    print("((salt&pepper)|butter)")
     print("--------------------")
     print(" ")
 
