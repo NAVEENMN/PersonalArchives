@@ -7,7 +7,6 @@ class database():
   def add_entry(self, key, value):
     error = Error_ID.OK
     response = key
-    print(key, value)
     try:
       self.db[key] = value
     except:
@@ -29,7 +28,7 @@ class database():
     return response
 
   def get_entry(self, key):
-    return key, self.db[key]
+    return list(self.db[key])
 
   def get_doc_ids(self):
     error = Error_ID.OK
@@ -38,7 +37,7 @@ class database():
       error = Error_ID.ERR_EMPTY_DB
     else:
       response = self.db.keys()
-    return self.db.keys(), error
+    return list(self.db.keys()), error
 
   def show_entries(self):
     print(" ")

@@ -18,3 +18,4 @@ class Error_ID(Enum):
   ERR_EMPTY_DB = 9
   ERR_NO_EXP = 10
   ERR_INVALID_EXP = 11
+  ERR_INVALID_TOKENS_EXP = 12

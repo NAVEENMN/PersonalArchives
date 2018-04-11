@@ -23,6 +23,7 @@ class Errors():
     self.err_str[Error_ID.ERR_EMPTY_DB] = "error database is empty"
     self.err_str[Error_ID.ERR_NO_EXP] = "error no expression provided"
     self.err_str[Error_ID.ERR_INVALID_EXP] = "error invalid expression provided"
+    self.err_str[Error_ID.ERR_INVALID_TOKENS_EXP] = "error expression contains invalid tokens"
   def strn(self, err_id):
     return self.err_str[err_id]
 
