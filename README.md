@@ -18,6 +18,8 @@ in: query salt
 out: results  {1, 2, 3}
 in: query (salt&pepper)
 out: results  {1, 3}
+in: query ((salt|pepper)&(salt&butter))
+out: results  {2}
 in: query (butter&pepper)
 out: results {}
 in: query ((salt&pepper)|(sugar))
@@ -26,4 +28,7 @@ in: query ((salt|pepper)&butter)
 out: results  {2}
 in: query ((salt|pepper)&garlic)
 out: results  {}
+in: q
+
+exiting
 ```
