@@ -1,5 +1,3 @@
-from enums import *
-
 def err_to_str(err_id):
   if err_id == 0:
     return "ok"

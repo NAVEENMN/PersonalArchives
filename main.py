@@ -1,8 +1,30 @@
-from enums import *
+from enum import Enum
+
 from database import *
 from errors import *
 from utils import *
 from os import sys
+
+# Enum Definations
+class ACTION(Enum):
+  INDEX = 0
+  QUERY = 1
+  DISPLAY = 2
+
+class Error_ID(Enum):
+  OK = 0
+  ERR_EMPTY_INPUT = 1
+  ERR_INVALID_COMMAND = 2
+  ERR_INVALID_DOC_INDEX = 3
+  ERR_NO_DOC_ID = 4
+  ERR_NO_TOKENS = 5
+  ERR_KEY_NOT_FOUND_IN_DB = 6
+  ERR_DB_ENTRY = 7
+  ERR_TOKENS_NON_ALPHA = 8
+  ERR_EMPTY_DB = 9
+  ERR_NO_EXP = 10
+  ERR_INVALID_EXP = 11
+  ERR_INVALID_TOKENS_EXP = 12
 
 # case when single token is queried
 def query_token(db, token):

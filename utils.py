@@ -1,7 +1,5 @@
 import re
 from functools import reduce
-from enums import *
-
 
 def tokenize_expression(expression):
   error = Error_ID.OK
