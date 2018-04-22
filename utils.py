@@ -78,7 +78,7 @@ def validate_parenthesis_and_tokens(expression):
   stack = list()
   tokens = []
   term = ""
-  
+  response = [] 
   for x in range(0, len(expression)):
     char = expression[x]
     if char == "(" or char == ")":
@@ -112,11 +112,12 @@ def validate_parenthesis_and_tokens(expression):
   valid = reduce(lambda x,y: x and y, map(validate_tokens, tokens))
   if not valid:
     error = Error_ID.ERR_TOKENS_NON_ALPHA
-  
-  return error
+  response = tokens
+  return error, response
 
 def validate_input(query):
   error = Error_ID.OK
+  response = []
   if len(query) == 0:
     error = Error_ID.ERR_EMPTY_INPUT
   else:
@@ -131,13 +132,13 @@ def validate_input(query):
         # check if command contains document id and terms
         if len(parts) < 3:
           error = Error_ID.ERR_NO_DOC_ID
-          return error
+          return error, response
 
         # check if document id is a valid integer
         document_id = parts[1]
         if not document_id.isdigit():
           error = Error_ID.ERR_INVALID_DOC_INDEX
-          return error
+          return error, response
 
         # check if tokens are valid characters
         tokens = parts[2:]
@@ -145,14 +146,14 @@ def validate_input(query):
         valid = reduce(lambda x,y: x and y, map(validate_tokens, tokens))
         if not valid:
           error = Error_ID.ERR_TOKENS_NON_ALPHA
-          return error
+          return error, response
 
       else:
         # validate query command
         expression = parts[1]
         # check if expression contains valid parenthesis and tokens
-        error = validate_parenthesis_and_tokens(expression)
+        error, response = validate_parenthesis_and_tokens(expression)
 
     else:
       error = Error_ID.ERR_INVALID_COMMAND
-  return error      
+  return error, response     
