@@ -1,7 +1,8 @@
 ## simple search engine
 ```
-Tested on Python 3.6.1
-Usage: python main.py
+Tested on Python 3.6.4
+Usage: 
+$ python main.py
 
 # example to add index:
 
