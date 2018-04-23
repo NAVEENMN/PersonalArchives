@@ -25,7 +25,7 @@ class Errors():
     self.err_str[Error_ID.ERR_EMPTY_INPUT] = "error input is empty"
     self.err_str[Error_ID.ERR_INVALID_COMMAND] = "error invalid input (valid: index | query)"
     self.err_str[Error_ID.ERR_INVALID_DOC_INDEX] = "error invalid document index"
-    self.err_str[Error_ID.ERR_NO_DOC_ID] = "error no document id was provided"
+    self.err_str[Error_ID.ERR_NO_DOC_ID] = "error no document id or tokens provided"
     self.err_str[Error_ID.ERR_NO_TOKENS] = "error no tokens were provided"
     self.err_str[Error_ID.ERR_KEY_NOT_FOUND_IN_DB] = "error key not found in db"
     self.err_str[Error_ID.ERR_DB_ENTRY] = "error unknown occured while db entry"
