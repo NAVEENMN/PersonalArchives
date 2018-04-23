@@ -29,10 +29,10 @@ class Errors():
     self.err_str[Error_ID.ERR_NO_TOKENS] = "error no tokens were provided"
     self.err_str[Error_ID.ERR_KEY_NOT_FOUND_IN_DB] = "error key not found in db"
     self.err_str[Error_ID.ERR_DB_ENTRY] = "error unknown occured while db entry"
-    self.err_str[Error_ID.ERR_TOKENS_NON_ALPHA] = "error tokens with non alphanumeric provided"
+    self.err_str[Error_ID.ERR_TOKENS_NON_ALPHA] = "error invalid tokens provided"
     self.err_str[Error_ID.ERR_EMPTY_DB] = "error database is empty"
     self.err_str[Error_ID.ERR_NO_EXP] = "error no expression provided"
-    self.err_str[Error_ID.ERR_INVALID_EXP] = "error invalid expression provided"
+    self.err_str[Error_ID.ERR_INVALID_EXP] = "error invalid expression provided, or [use brackets concisely] "
     self.err_str[Error_ID.ERR_INVALID_TOKENS_EXP] = "error expression contains invalid tokens"
     self.err_str[Error_ID.ERR_UNKNOWN] = "An unkown error occured"
   def strn(self, err_id):
@@ -101,19 +101,24 @@ def validate_parenthesis_and_tokens(expression):
   # check if query has mismatching parenthesis
   if len(stack) != 0:
     error = Error_ID.ERR_INVALID_EXP
-    return error
+    return error, response
 
   if term != "":
     tokens.append(term)
     term = ""
   
   # check if tokens contain illegal characters
-  validate_tokens = lambda token: re.match('^[\w-]+$', token) is not None
   valid = reduce(lambda x,y: x and y, map(validate_tokens, tokens))
   if not valid:
     error = Error_ID.ERR_TOKENS_NON_ALPHA
   response = tokens
   return error, response
+
+def validate_tokens(tokens):
+  valid = False
+  if tokens.isalpha():
+    valid = True
+  return valid
 
 def validate_input(query):
   error = Error_ID.OK
@@ -142,7 +147,6 @@ def validate_input(query):
 
         # check if tokens are valid characters
         tokens = parts[2:]
-        validate_tokens = lambda token: re.match('^[\w-]+$', token) is not None
         valid = reduce(lambda x,y: x and y, map(validate_tokens, tokens))
         if not valid:
           error = Error_ID.ERR_TOKENS_NON_ALPHA
@@ -150,7 +154,11 @@ def validate_input(query):
 
       else:
         # validate query command
-        expression = parts[1]
+        try:
+          expression = parts[1]
+        except:
+          error = Error_ID.ERR_NO_EXP
+          return error, response
         # check if expression contains valid parenthesis and tokens
         error, response = validate_parenthesis_and_tokens(expression)
 
