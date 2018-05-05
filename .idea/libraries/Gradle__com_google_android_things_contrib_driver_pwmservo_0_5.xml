@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: com.google.android.things.contrib:driver-pwmservo-0.5">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/driver-pwmservo-0.5.aar/2b1a972979265a9a0ea6a19adc11375d/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/driver-pwmservo-0.5.aar/2b1a972979265a9a0ea6a19adc11375d/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.google.android.things.contrib/driver-pwmservo/0.5/fa1feaa71f63b1349b761537c1ffc1672d137062/driver-pwmservo-0.5-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
