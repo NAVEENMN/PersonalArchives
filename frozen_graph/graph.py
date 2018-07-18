@@ -4,13 +4,16 @@
 import os
 import numpy as np
 import tensorflow as tf
+from PIL import Image, ImageTk
+
+img_path = "/Users/naveenmysore/Documents/me.jpg"
 
 class graph():
     def __init__(self, dir_path, model_name):
         self.graph = self.load_graph(dir_path, model_name)
-        self.input_ph = self.graph.get_tensor_by_name('image_tensor:0')
-        self.mid = self.graph.get_tensor_by_name('add_6:0')
-        self.output = self.graph.get_tensor_by_name('detection_classes:0')
+        self.input_ph = self.graph.get_tensor_by_name('DecodeJpeg:0')
+        #self.mid = self.graph.get_tensor_by_name('add_6:0')
+        self.output = self.graph.get_tensor_by_name('softmax:0')
 
     def load_graph(self, dir_path, model_name):
         path = os.path.join(dir_path, model_name)
@@ -23,7 +26,7 @@ class graph():
             tf.import_graph_def(graph_def, name='')
         return graph
 
-    def run(self, input_image):
+    def run_g(self, input_image):
         print("vars")
         feed_dict = {self.input_ph: input_image}
         with tf.Session(graph=self.graph) as sess:
@@ -31,6 +34,15 @@ class graph():
             tensors = [m.values() for m in op]
             for tensor in tensors:
                 print(tensor)
-            res = sess.run([self.mid, self.output],feed_dict=feed_dict)
+            res = sess.run([self.output],feed_dict=feed_dict)
             print(res)
 
+
+def main():
+    gh = graph("model", "classify_image_graph_def.pb")
+    image = Image.open(img_path)
+    #image = np.random.rand(1, 32, 32, 3)
+    gh.run_g(image)
+
+if __name__ == "__main__":
+    main()
