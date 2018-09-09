@@ -43,7 +43,14 @@ def freeze_graph(model_dir, output_node_names):
 
         # We restore the weights
         saver.restore(sess, input_checkpoint)
-
+        
+        gh = tf.get_default_graph().as_graph_def()
+        tensors = []
+        op = sess.graph.get_operations()
+        tensors = [m.values() for m in op]
+        for tensor in tensors:
+            print(tensor)
+        
         # We use a built-in TF helper to export variables to constants
         output_graph_def = tf.graph_util.convert_variables_to_constants(
             sess,  # The session is used to retrieve the weights
@@ -65,6 +72,6 @@ if __name__ == '__main__':
     model_dir = dir+"/saved_model/"
 
     # comma seperated output node names.
-    output_node_names = "FC_layers_1/FC_4/Softmax"
+    output_node_names = "FC_layers_1/pred_out/Softmax,FC_layers_1/pick_out/Sigmoid"
 
     freeze_graph(model_dir, output_node_names)
