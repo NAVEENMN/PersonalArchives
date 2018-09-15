@@ -2,6 +2,8 @@ import os
 import numpy as np
 import tensorflow as tf
 from collections import deque
+from tensorflow.python.client import device_lib
+
 import random
 from bGraph import *
 from utils import *
@@ -143,6 +145,8 @@ def run(sess, tGraph, data, saver, writer):
             
 
 def main():
+    devs = device_lib.list_local_devices()
+    print(devs[1])
     with tf.Session() as sess:
         bGraph = bottle_neck_graph(BOTTLE_NECK_GRAPH_PATH, sess)
         tGraph = network(sess)

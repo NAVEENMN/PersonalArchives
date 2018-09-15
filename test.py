@@ -3,12 +3,13 @@ import time
 import numpy as np
 import tensorflow as tf
 from PIL import Image, ImageTk
+from tensorflow.python.client import device_lib
 
 BOTTLE_NECK_GRAPH_PATH = "pb_models/classify_image_graph_def.pb"
 OUT_GRAPH_PATH = "pb_models/frozen_tGraph.pb"
 
 dir = os.path.dirname(os.path.realpath(__file__))
-test_img = dir+"/data/cans/0/ds1_f1_48.jpg"
+test_img = dir+"/data/foodboxes/1/ds1_f1_13.jpg"
 
 class network():
     def __init__(self, sess):
@@ -44,14 +45,16 @@ class network():
 
 
 def main():
+    devs = device_lib.list_local_devices()
     image = Image.open(test_img)
     classes = ["cans", "foodboxes", "hdp", "nothing"]
     with tf.Session() as sess:
-        graph = network(sess)
-        start_time = time.time()
-        output, pick_prob = graph.feed_forward(image)
-        idx = np.argmax(output[0])
-        obj = classes[idx]
+        with tf.device(devs[1].name):
+            graph = network(sess)
+            start_time = time.time()
+            output, pick_prob = graph.feed_forward(image)
+            idx = np.argmax(output[0])
+            obj = classes[idx]
         print(output[0], obj, pick_prob)
         run_time = time.time() - start_time
         print("--- %s seconds ---" % (run_time))
