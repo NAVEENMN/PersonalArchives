@@ -14,7 +14,6 @@ num_input = 3
 num_hidden= 30
 batch_size = 50
 
-
 class state_attr():
     def __init__(self, st):
         self.prev_state = None
@@ -31,7 +30,7 @@ class v_s():
     def __init__(self, sess, name):
         self.sess = sess
         self.name = name
-        self.opt = tf.train.AdamOptimizer(learning_rate=0.001, epsilon=1e-4)
+        self.opt = tf.train.AdamOptimizer(learning_rate=0.01, epsilon=1e-4)
 
     def get_value(self, state, reuse=False):
         n = self.name
@@ -59,7 +58,7 @@ class q_v():
     def __init__(self, sess, name):
         self.sess = sess
         self.name = name
-        self.opt = tf.train.AdamOptimizer(learning_rate=0.001, epsilon=1e-4)
+        self.opt = tf.train.AdamOptimizer(learning_rate=0.01, epsilon=1e-4)
 
     def get_value(self, state, action, reuse=False):
         n = self.name
@@ -90,7 +89,7 @@ class policy():
         self.sess = sess
         self.name = name
         self.lstm_cell = rnn.BasicLSTMCell(num_hidden, forget_bias=1.0)
-        self.opt = tf.train.AdamOptimizer(learning_rate=0.0001, epsilon=1e-4)
+        self.opt = tf.train.AdamOptimizer(learning_rate=0.001, epsilon=1e-4)
 
     def get_action(self, states, reuse=False):
         n = self.name
