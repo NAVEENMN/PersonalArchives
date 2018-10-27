@@ -5,15 +5,15 @@ import tensorflow as tf
 from tensorflow.contrib import rnn
 from collections import deque
 
-rolls_per_batch = 3
 state_space = 3
 action_space = 1
 rewards_space = 1
+
 timesteps = 2
 num_input = 3
-num_hidden= 30
+num_hidden = 30
 batch_size = 50
-
+rolls_per_batch = 1
 
 class state_attr():
     def __init__(self, st):
@@ -36,9 +36,8 @@ class v_s():
     def get_value(self, state, reuse=False):
         n = self.name
         with tf.variable_scope(self.name, reuse=reuse):
-            fc1 = tf.layers.dense(state, 12, activation=tf.nn.relu, name=n+"fc1")
-            fc2 = tf.layers.dense(fc1, 5, activation=tf.nn.relu, name=n+"fc2")
-            out = tf.layers.dense(fc2, 1, activation=tf.nn.sigmoid, name=n+"out")
+            fc1 = tf.layers.dense(state, 100, activation=tf.nn.relu, name=n+"fc1")
+            out = tf.layers.dense(fc1, 1, activation=tf.nn.sigmoid, name=n+"out")
         return out
 
     def get_loss(self, source, target):
@@ -64,11 +63,10 @@ class q_v():
     def get_value(self, state, action, reuse=False):
         n = self.name
         with tf.variable_scope(self.name, reuse=reuse):
-            sfc1 = tf.layers.dense(state, 8, activation=tf.nn.relu, name=n+"sfc1")
-            afc1 = tf.layers.dense(action, 8, activation=tf.nn.relu, name=n+"afc1")
+            sfc1 = tf.layers.dense(state, 100, activation=tf.nn.relu, name=n+"sfc1")
+            afc1 = tf.layers.dense(action, 100, activation=tf.nn.relu, name=n+"afc1")
             fc1 = tf.multiply(sfc1, afc1, name=n+"stat")
-            fc2 = tf.layers.dense(fc1, 5, activation=tf.nn.relu, name=n+"fc2")
-            out = tf.layers.dense(fc2, 1, activation=tf.nn.sigmoid, name=n+"out")
+            out = tf.layers.dense(fc1, 1, activation=tf.nn.sigmoid, name=n+"out")
         return out
 
     def get_loss(self, source, target):
@@ -86,12 +84,15 @@ class q_v():
         return vars
 
 class policy():
-    def __init__(self, sess, name):
+    def __init__(self, sess, env, name):
         self.sess = sess
         self.name = name
+        self.ENTROPY_BETA = 0.01
+        self.A_BOUND = [env.action_space.low, env.action_space.high]
         self.lstm_cell = rnn.BasicLSTMCell(num_hidden, forget_bias=1.0)
         self.opt = tf.train.AdamOptimizer(learning_rate=0.0001, epsilon=1e-4)
 
+    # policy returns mean and sd
     def get_action(self, states, reuse=False):
         n = self.name
         with tf.variable_scope(self.name, reuse=reuse):
@@ -101,17 +102,29 @@ class policy():
 
             outputs, states = rnn.static_rnn(self.lstm_cell, x, dtype=tf.float32)
 
-            fc1 = tf.layers.dense(outputs[-1], 20, activation=tf.nn.tanh, name=n+"fc1")
-            fc2 = tf.layers.dense(fc1, 10, activation=tf.nn.tanh, name=n+"fc2")
-            out1 = tf.layers.dense(fc2, 1, activation=tf.nn.softplus, name=n + "out1")
-            out2 = tf.layers.dense(fc2, 1, activation=tf.nn.softplus, name=n+"out2")
-            out = tf.add(out1, -out2)
+            fc1 = tf.layers.dense(outputs[-1], 200, activation=tf.nn.relu, name=n+"fc1")
+            mu = tf.layers.dense(fc1, 1, activation=tf.nn.tanh, name=n + "mu")
+            sigma = tf.layers.dense(fc1, 1, activation=tf.nn.softplus, name=n+"sigma")
 
-        return out
+            # tanh gives (-1, 1) scale up in range of action bounds
+            mu, sigma = mu * self.A_BOUND[1], sigma + 1e-4
 
-    def get_scaled_grads(self, pi, adv, params):
-        self.scaled_grads = tf.gradients((tf.log(pi)*adv/rolls_per_batch), params)
-        return zip(self.scaled_grads, params)
+        return mu, sigma
+
+    def get_scaled_grads(self, pi, normal_dist, adv, params):
+        # take log of distribution
+        log_prob = normal_dist.log_prob(pi)
+        exp_v = log_prob * adv
+        entropy = normal_dist.entropy() # add noise to explore
+        exp_v = self.ENTROPY_BETA * entropy + exp_v
+
+        # optimzers minimize by subtracting grads we need to maximize the utility
+        # U(pi) -ve of exp_v
+        # 1/m * sum(grads(prob(trajectory)) * advantage)
+        a_loss = tf.reduce_mean(-exp_v)
+        # taking grads after sum
+        scaled_grads = tf.gradients(a_loss, params)
+        return zip(scaled_grads, params)
 
     def train_step(self, grads):
         return self.opt.apply_gradients(grads)
@@ -124,6 +137,7 @@ class policy():
 class game():
     def __init__(self, sess):
         self.env = gym.make('Pendulum-v0')
+        self.A_BOUND = [self.env.action_space.low, self.env.action_space.high]
         self.sess = sess
 
         with tf.name_scope("Inputs"):
@@ -136,8 +150,13 @@ class game():
             self.target_ad = tf.placeholder("float", [None, rewards_space], name="target_ad")
 
         with tf.name_scope("policy"):
-            pi = policy(sess, "pi_")
-            self.pi_u = pi.get_action(self.input_state_pi)
+            pi = policy(sess, self.env, "pi_")
+            self.mu, self.sigma = pi.get_action(self.input_state_pi)
+            # get normal distribution for action
+            normal_dist = tf.contrib.distributions.Normal(self.mu, self.sigma)
+            # draw a sample from this distribution
+            self.pi_u = tf.clip_by_value(tf.squeeze(normal_dist.sample(1), axis=0),
+                                         self.A_BOUND[0], self.A_BOUND[1])
 
         with tf.name_scope("value_st"):
             vs = v_s(sess, "vs_")
@@ -152,7 +171,7 @@ class game():
             self.qv_loss = qsa.get_loss(source=self.q_value, target=self.target_qv)
             self.train_qv = qsa.train_step(loss=self.qv_loss, t_vars=qsa.get_params())
 
-        self.pi_grads = pi.get_scaled_grads(self.pi_u, self.input_adv, pi.get_params())
+        self.pi_grads = pi.get_scaled_grads(self.pi_u, normal_dist, self.input_adv, pi.get_params())
         self.train_pi = pi.train_step(self.pi_grads)
 
     # (batch_size, timesteps, n_input)
