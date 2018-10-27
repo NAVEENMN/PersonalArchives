@@ -5,14 +5,14 @@ import tensorflow as tf
 from tensorflow.contrib import rnn
 from collections import deque
 
-rolls_per_batch = 1
+rolls_per_batch = 5
 m = 5
 state_space = 3
 action_space = 1
 rewards_space = 1
 timesteps = 2
 num_input = 3
-num_hidden= 10
+num_hidden= 30
 
 class state_attr():
     def __init__(self, st):
@@ -22,6 +22,8 @@ class state_attr():
         self.next_state = None
         self.reward_gotten = None
         self.advantage = None
+        self.state_value = None
+        self.q_value = None
 
 class v_s():
     def __init__(self, sess, name):
@@ -32,8 +34,8 @@ class v_s():
     def get_value(self, state, reuse=False):
         n = self.name
         with tf.variable_scope(self.name, reuse=reuse):
-            fc1 = tf.layers.dense(state, 32, activation=tf.nn.sigmoid, name=n+"fc1")
-            fc2 = tf.layers.dense(fc1, 20, activation=tf.nn.sigmoid, name=n+"fc2")
+            fc1 = tf.layers.dense(state, 12, activation=tf.nn.relu, name=n+"fc1")
+            fc2 = tf.layers.dense(fc1, 5, activation=tf.nn.relu, name=n+"fc2")
             out = tf.layers.dense(fc2, 1, activation=tf.nn.sigmoid, name=n+"out")
         return out
 
@@ -60,10 +62,10 @@ class q_v():
     def get_value(self, state, action, reuse=False):
         n = self.name
         with tf.variable_scope(self.name, reuse=reuse):
-            sfc1 = tf.layers.dense(state, 32, activation=tf.nn.sigmoid, name=n+"sfc1")
-            afc1 = tf.layers.dense(action, 32, activation=tf.nn.sigmoid, name=n+"afc1")
-            fc1 = tf.add(sfc1, afc1, name=n+"stat")
-            fc2 = tf.layers.dense(fc1, 20, activation=tf.nn.sigmoid, name=n+"fc2")
+            sfc1 = tf.layers.dense(state, 12, activation=tf.nn.relu, name=n+"sfc1")
+            afc1 = tf.layers.dense(action, 12, activation=tf.nn.relu, name=n+"afc1")
+            fc1 = tf.multiply(sfc1, afc1, name=n+"stat")
+            fc2 = tf.layers.dense(fc1, 8, activation=tf.nn.relu, name=n+"fc2")
             out = tf.layers.dense(fc2, 1, activation=tf.nn.sigmoid, name=n+"out")
         return out
 
@@ -85,7 +87,7 @@ class policy():
     def __init__(self, sess, name):
         self.sess = sess
         self.name = name
-        self.lstm_cell = rnn.BasicLSTMCell(num_hidden, forget_bias=1.0, name=self.name+"rnn")
+        self.lstm_cell = rnn.BasicLSTMCell(num_hidden, forget_bias=1.0)
         self.opt = tf.train.AdamOptimizer(learning_rate=0.0001, epsilon=1e-4)
 
     def get_action(self, states, reuse=False):
@@ -94,16 +96,17 @@ class policy():
 
             # Current data input shape: (batch_size, timesteps, n_input)
             x = tf.unstack(states, timesteps, 1, name=n+"unstack")
+
             outputs, states = rnn.static_rnn(self.lstm_cell, x, dtype=tf.float32)
 
-            fc1 = tf.layers.dense(outputs[-1], 10, activation=tf.nn.tanh, name=n+"fc1")
-            fc2 = tf.layers.dense(fc1, 20, activation=tf.nn.tanh, name=n+"fc2")
+            fc1 = tf.layers.dense(outputs[-1], 20, activation=tf.nn.tanh, name=n+"fc1")
+            fc2 = tf.layers.dense(fc1, 10, activation=tf.nn.tanh, name=n+"fc2")
             out = tf.layers.dense(fc2, 1, activation=tf.nn.tanh, name=n+"out")
-        out = tf.multiply(out, 2.0)
+        out = out
         return out
 
     def get_scaled_grads(self, pi, adv, params):
-        self.scaled_grads = tf.gradients((tf.log(pi) * adv)/rolls_per_batch, params)
+        self.scaled_grads = tf.gradients((tf.log(pi)*adv/rolls_per_batch), params)
         return zip(self.scaled_grads, params)
 
     def train_step(self, grads):
@@ -183,25 +186,20 @@ class game():
         return value
 
     def train_state_value(self, memory, epoch):
-        st, at, rt, st1, advantage, _ = memory.sample_batch(30)
-        v_st1 = self.get_state_value(state=st1)
-        v_target = rt + 0.9 * v_st1
-        feed_dict = {self.input_state: st, self.target_vs: v_target}
-        self.sess.run(self.target_vs, feed_dict=feed_dict)
+        st, at, rt, st1, advantage, previous_states, state_values, q_values = memory.sample_batch(30)
+        feed_dict = {self.input_state: st, self.target_vs: state_values}
+        self.sess.run(self.train_sv, feed_dict=feed_dict)
         if epoch%10 == 0:
             print("vs_loss", self.sess.run(self.vs_loss, feed_dict=feed_dict))
 
     def train_q_value(self, memory, epoch):
-        st, at, rt, st1, advantage, previous_states = memory.sample_batch(30)
-        at1 = self.get_action(ba=[st, st1]) # on policy
-        q_st1 = self.get_q_value(state=st1, action=at1)
-        q_target = rt + 0.9 * q_st1
-        feed_dict = {self.input_state_pi: previous_states,
+        st, at, rt, st1, advantage, previous_states, state_values, q_values = memory.sample_batch(30)
+        feed_dict = {self.input_state: st,
                      self.input_action: at,
-                     self.target_qv: q_target}
-        self.sess.run(self.target_qv, feed_dict=feed_dict)
-        #if epoch % 10 == 0:
-        #    print("qv_loss", self.sess.run(self.qv_loss, feed_dict=feed_dict))
+                     self.target_qv: q_values}
+        self.sess.run(self.train_qv, feed_dict=feed_dict)
+        if epoch % 10 == 0:
+            print("qv_loss", self.sess.run(self.qv_loss, feed_dict=feed_dict))
 
     def train_policy(self, st, adv, epoch):
         adv = np.reshape(adv, [-1, rewards_space])
@@ -230,10 +228,7 @@ class game():
                 at = self.get_action(list(ba))
                 st1, rt1, done, info = self.env.step(at)
                 st1 = np.asarray(st1)
-                rt1 = (10.0 - abs(rt1)) / 10.0
-                #print(rt1)
-                #if done:
-                #    print("done", rt1)
+                rt1 = (15.0 - abs(rt1)) / 10.0
 
                 # advantage is calculated wrt to current state
                 q_value = self.get_q_value(state=st, action=at)
@@ -246,12 +241,22 @@ class game():
                 rt1 = np.reshape(rt1, [1, rewards_space])
                 advantage = np.reshape(advantage, [1, rewards_space])
 
+                at1 = self.get_action(ba=[st, st1])  # on policy
+                q_st1 = self.get_q_value(state=st1, action=at1)
+                v_st1 = self.get_state_value(state=st1)
+
                 stattr = state_attr(st)
                 stattr.action_taken = at
                 stattr.next_state = st1
                 stattr.prev_state = list(ba)
                 stattr.reward_gotten = rt1
                 stattr.advantage = advantage
+                if done:
+                    stattr.state_value = rt1
+                    stattr.q_value = rt1
+                else:
+                    stattr.q_value = rt1 + 0.9 * q_st1
+                    stattr.state_value = rt1 + 0.9 * v_st1
 
                 tr.append(stattr)
                 memory.add(stattr)
@@ -259,7 +264,7 @@ class game():
                 ba.pop(0)
                 st = st1
 
-        print("epoch {} : at{} total return {}".format(epoch, at, len(tr)))
+        #print("epoch {} : at{} total return {}".format(epoch, at, len(tr)))
         return tr
 
     def train(self, tr, epoch, memory):
@@ -301,7 +306,6 @@ class ReplayBuffer(object):
             self.count += 1
         else:
             self.buffer.popleft()
-            self.count -= 1
             self.buffer.append(experience)
 
     def size(self):
@@ -321,15 +325,20 @@ class ReplayBuffer(object):
         st1 = np.reshape([_.next_state for _ in batch], [-1, state_space])
         advantage = np.reshape([_.advantage for _ in batch], [-1, rewards_space])
         previous_states = np.reshape([_.prev_state for _ in batch], [-1, timesteps, num_input])
+        st_values = np.reshape([_.state_value for _ in batch], [-1, rewards_space])
+        q_values = np.reshape([_.q_value for _ in batch], [-1, rewards_space])
 
-        return st, at, rt1, st1, advantage, previous_states
+        return st, at, rt1, st1, advantage, previous_states, st_values, q_values
 
 def main():
     sess = tf.InteractiveSession()
     gm = game(sess)
-    memory = ReplayBuffer(10000)
+    memory = ReplayBuffer(1000000)
     sess.run(tf.global_variables_initializer())
-    for epoch in range(0, 1000):
+    #for epoch in range(0, 1000):
+    epoch = 0
+    while True:
+        epoch += 1
         # run m episodes under current policy
         tr = gm.run_episodes(epoch, rolls_per_batch, memory)
         # train state_value, q_value and policy
