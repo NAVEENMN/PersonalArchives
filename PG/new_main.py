@@ -5,14 +5,15 @@ import tensorflow as tf
 from tensorflow.contrib import rnn
 from collections import deque
 
-rolls_per_batch = 5
-m = 5
+rolls_per_batch = 3
 state_space = 3
 action_space = 1
 rewards_space = 1
 timesteps = 2
 num_input = 3
 num_hidden= 30
+batch_size = 50
+
 
 class state_attr():
     def __init__(self, st):
@@ -24,6 +25,7 @@ class state_attr():
         self.advantage = None
         self.state_value = None
         self.q_value = None
+        self.done = False
 
 class v_s():
     def __init__(self, sess, name):
@@ -62,10 +64,10 @@ class q_v():
     def get_value(self, state, action, reuse=False):
         n = self.name
         with tf.variable_scope(self.name, reuse=reuse):
-            sfc1 = tf.layers.dense(state, 12, activation=tf.nn.relu, name=n+"sfc1")
-            afc1 = tf.layers.dense(action, 12, activation=tf.nn.relu, name=n+"afc1")
+            sfc1 = tf.layers.dense(state, 8, activation=tf.nn.relu, name=n+"sfc1")
+            afc1 = tf.layers.dense(action, 8, activation=tf.nn.relu, name=n+"afc1")
             fc1 = tf.multiply(sfc1, afc1, name=n+"stat")
-            fc2 = tf.layers.dense(fc1, 8, activation=tf.nn.relu, name=n+"fc2")
+            fc2 = tf.layers.dense(fc1, 5, activation=tf.nn.relu, name=n+"fc2")
             out = tf.layers.dense(fc2, 1, activation=tf.nn.sigmoid, name=n+"out")
         return out
 
@@ -101,8 +103,10 @@ class policy():
 
             fc1 = tf.layers.dense(outputs[-1], 20, activation=tf.nn.tanh, name=n+"fc1")
             fc2 = tf.layers.dense(fc1, 10, activation=tf.nn.tanh, name=n+"fc2")
-            out = tf.layers.dense(fc2, 1, activation=tf.nn.tanh, name=n+"out")
-        out = out
+            out1 = tf.layers.dense(fc2, 1, activation=tf.nn.softplus, name=n + "out1")
+            out2 = tf.layers.dense(fc2, 1, activation=tf.nn.softplus, name=n+"out2")
+            out = tf.add(out1, -out2)
+
         return out
 
     def get_scaled_grads(self, pi, adv, params):
@@ -186,17 +190,37 @@ class game():
         return value
 
     def train_state_value(self, memory, epoch):
-        st, at, rt, st1, advantage, previous_states, state_values, q_values = memory.sample_batch(30)
-        feed_dict = {self.input_state: st, self.target_vs: state_values}
+        st, at, rt, st1, advantage, _, done = memory.sample_batch(batch_size)
+        targets = []
+        v_st1 = self.get_state_value(state=st1)
+        for i in range(0, batch_size):
+            if done[i][0]:
+                targets.append(np.reshape(rt[i], [1, 1]))
+            else:
+                v_target = rt[i] + 0.9 * v_st1[i]
+                targets.append(np.reshape(v_target, [1, 1]))
+        targets = np.reshape(targets, [-1, 1])
+        feed_dict = {self.input_state: st,
+                     self.target_vs: targets}
         self.sess.run(self.train_sv, feed_dict=feed_dict)
         if epoch%10 == 0:
             print("vs_loss", self.sess.run(self.vs_loss, feed_dict=feed_dict))
 
     def train_q_value(self, memory, epoch):
-        st, at, rt, st1, advantage, previous_states, state_values, q_values = memory.sample_batch(30)
+        targets = []
+        st, at, rt, st1, advantage, previous_states, done = memory.sample_batch(batch_size)
+        at1 = self.get_action(ba=[st, st1]) # on policy
+        q_st1 = self.get_q_value(state=st1, action=at1)
+        for i in range(0, batch_size):
+            if done[i][0]:
+                targets.append(np.reshape(rt[i], [1, 1]))
+            else:
+                q_target = rt[i] + 0.9 * q_st1[i]
+                targets.append(np.reshape(q_target, [1, 1]))
+        targets = np.reshape(targets, [-1, 1])
         feed_dict = {self.input_state: st,
                      self.input_action: at,
-                     self.target_qv: q_values}
+                     self.target_qv: targets}
         self.sess.run(self.train_qv, feed_dict=feed_dict)
         if epoch % 10 == 0:
             print("qv_loss", self.sess.run(self.qv_loss, feed_dict=feed_dict))
@@ -206,14 +230,28 @@ class game():
         feed_dict = {self.input_state_pi: st,
                      self.input_adv: adv}
         self.sess.run(self.train_pi, feed_dict=feed_dict)
-        #gds = self.sess.run(self.pi_grads, feed_dict=feed_dict)
-        #print(gds[0], gds[1])
         if epoch % 10 == 0:
             print("adv", max(np.reshape(adv, [-1])))
 
+    def compute_returns(self, tr):
+        returns = [-1.0]
+        for _ in tr[::-1]:
+            value = 0.1 + 0.9 * returns[-1]
+            returns.append(value)
+        returns = returns[::-1]
+        returns = returns[1:]
+        for i in range(0, len(tr)):
+            state = tr[i]
+            state.reward_gotten = returns[i]
+            tr[i] = state
+        return tr
+
     def run_episodes(self, epoch, roll_outs, memory):
         tr = list()
+        states = []
+        at = 0.0
         for roll in range(0, roll_outs):
+            states = list()
             done = False
             self.env.reset()
             action = self.env.action_space.sample()
@@ -228,7 +266,10 @@ class game():
                 at = self.get_action(list(ba))
                 st1, rt1, done, info = self.env.step(at)
                 st1 = np.asarray(st1)
-                rt1 = (15.0 - abs(rt1)) / 10.0
+
+                rt1 = 0.1
+                if done:
+                    rt1 = -1.0
 
                 # advantage is calculated wrt to current state
                 q_value = self.get_q_value(state=st, action=at)
@@ -258,13 +299,19 @@ class game():
                     stattr.q_value = rt1 + 0.9 * q_st1
                     stattr.state_value = rt1 + 0.9 * v_st1
 
-                tr.append(stattr)
-                memory.add(stattr)
+                if done:
+                    stattr.done = True
+                states.append(stattr)
                 ba.append(st1)
                 ba.pop(0)
                 st = st1
 
-        #print("epoch {} : at{} total return {}".format(epoch, at, len(tr)))
+        states = self.compute_returns(states)
+        for state in states:
+            tr.append(state)
+            memory.add(state)
+
+        print("epoch {} : at{} total return {}".format(epoch, at, len(tr)))
         return tr
 
     def train(self, tr, epoch, memory):
@@ -273,8 +320,10 @@ class game():
         adv = [np.reshape(v.advantage, [-1, rewards_space]) for v in tr]
 
         self.train_state_value(memory, epoch=epoch)
+        self.train_state_value(memory, epoch=epoch)
 
         # training q_value
+        self.train_q_value(memory, epoch=epoch)
         self.train_q_value(memory, epoch=epoch)
 
         # train policy
@@ -328,7 +377,9 @@ class ReplayBuffer(object):
         st_values = np.reshape([_.state_value for _ in batch], [-1, rewards_space])
         q_values = np.reshape([_.q_value for _ in batch], [-1, rewards_space])
 
-        return st, at, rt1, st1, advantage, previous_states, st_values, q_values
+        done = np.reshape([_.done for _ in batch], [-1, 1])
+
+        return st, at, rt1, st1, advantage, previous_states, done
 
 def main():
     sess = tf.InteractiveSession()
