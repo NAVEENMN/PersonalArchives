@@ -5,14 +5,14 @@ import tensorflow as tf
 from tensorflow.contrib import rnn
 from collections import deque
 
-rolls_per_batch = 1
-m = 5
+rolls_per_batch = 3
 state_space = 3
 action_space = 1
 rewards_space = 1
 timesteps = 2
 num_input = 3
-num_hidden= 10
+num_hidden = 10
+batch_size = 30
 
 class state_attr():
     def __init__(self, st):
@@ -22,6 +22,7 @@ class state_attr():
         self.next_state = None
         self.reward_gotten = None
         self.advantage = None
+        self.done = False
 
 class v_s():
     def __init__(self, sess, name):
@@ -99,6 +100,7 @@ class policy():
             fc1 = tf.layers.dense(outputs[-1], 10, activation=tf.nn.tanh, name=n+"fc1")
             fc2 = tf.layers.dense(fc1, 20, activation=tf.nn.tanh, name=n+"fc2")
             out = tf.layers.dense(fc2, 1, activation=tf.nn.tanh, name=n+"out")
+
         out = tf.multiply(out, 2.0)
         return out
 
@@ -183,39 +185,61 @@ class game():
         return value
 
     def train_state_value(self, memory, epoch):
-        st, at, rt, st1, advantage, _ = memory.sample_batch(30)
+        st, at, rt, st1, advantage, _, done = memory.sample_batch(batch_size)
+        targets = []
         v_st1 = self.get_state_value(state=st1)
-        v_target = rt + 0.9 * v_st1
-        feed_dict = {self.input_state: st, self.target_vs: v_target}
-        self.sess.run(self.target_vs, feed_dict=feed_dict)
+        for i in range(0, batch_size):
+            if done[i][0]:
+                targets.append(np.reshape(rt[i], [1, 1]))
+            else:
+                v_target = rt[i] + 0.9 * v_st1[i]
+                targets.append(np.reshape(v_target, [1, 1]))
+        targets = np.reshape(targets, [-1, 1])
+        feed_dict = {self.input_state: st,
+                     self.target_vs: targets}
+        self.sess.run(self.train_sv, feed_dict=feed_dict)
         if epoch%10 == 0:
             print("vs_loss", self.sess.run(self.vs_loss, feed_dict=feed_dict))
 
     def train_q_value(self, memory, epoch):
-        st, at, rt, st1, advantage, previous_states = memory.sample_batch(30)
+        st, at, rt, st1, advantage, previous_states, done = memory.sample_batch(batch_size)
         at1 = self.get_action(ba=[st, st1]) # on policy
         q_st1 = self.get_q_value(state=st1, action=at1)
         q_target = rt + 0.9 * q_st1
-        feed_dict = {self.input_state_pi: previous_states,
+        feed_dict = {self.input_state: st,
                      self.input_action: at,
                      self.target_qv: q_target}
-        self.sess.run(self.target_qv, feed_dict=feed_dict)
-        #if epoch % 10 == 0:
-        #    print("qv_loss", self.sess.run(self.qv_loss, feed_dict=feed_dict))
+        self.sess.run(self.train_qv, feed_dict=feed_dict)
+        if epoch % 10 == 0:
+            print("qv_loss", self.sess.run(self.qv_loss, feed_dict=feed_dict))
 
     def train_policy(self, st, adv, epoch):
         adv = np.reshape(adv, [-1, rewards_space])
         feed_dict = {self.input_state_pi: st,
                      self.input_adv: adv}
         self.sess.run(self.train_pi, feed_dict=feed_dict)
-        #gds = self.sess.run(self.pi_grads, feed_dict=feed_dict)
-        #print(gds[0], gds[1])
         if epoch % 10 == 0:
             print("adv", max(np.reshape(adv, [-1])))
 
+    def compute_returns(self, tr):
+        returns = [-1.0]
+        for _ in tr[::-1]:
+            value = 0.1 + 0.9 * returns[-1]
+            returns.append(value)
+        returns = returns[::-1]
+        returns = returns[1:]
+        for i in range(0, len(tr)):
+            state = tr[i]
+            state.reward_gotten = returns[i]
+            tr[i] = state
+        return tr
+
     def run_episodes(self, epoch, roll_outs, memory):
         tr = list()
+        states = []
+        at = 0.0
         for roll in range(0, roll_outs):
+            states = list()
             done = False
             self.env.reset()
             action = self.env.action_space.sample()
@@ -230,10 +254,10 @@ class game():
                 at = self.get_action(list(ba))
                 st1, rt1, done, info = self.env.step(at)
                 st1 = np.asarray(st1)
-                rt1 = (10.0 - abs(rt1)) / 10.0
-                #print(rt1)
-                #if done:
-                #    print("done", rt1)
+
+                rt1 = 0.1
+                if done:
+                    rt1 = -1.0
 
                 # advantage is calculated wrt to current state
                 q_value = self.get_q_value(state=st, action=at)
@@ -252,12 +276,17 @@ class game():
                 stattr.prev_state = list(ba)
                 stattr.reward_gotten = rt1
                 stattr.advantage = advantage
-
-                tr.append(stattr)
-                memory.add(stattr)
+                if done:
+                    stattr.done = True
+                states.append(stattr)
                 ba.append(st1)
                 ba.pop(0)
                 st = st1
+
+        states = self.compute_returns(states)
+        for state in states:
+            tr.append(state)
+            memory.add(state)
 
         print("epoch {} : at{} total return {}".format(epoch, at, len(tr)))
         return tr
@@ -321,8 +350,9 @@ class ReplayBuffer(object):
         st1 = np.reshape([_.next_state for _ in batch], [-1, state_space])
         advantage = np.reshape([_.advantage for _ in batch], [-1, rewards_space])
         previous_states = np.reshape([_.prev_state for _ in batch], [-1, timesteps, num_input])
+        done = np.reshape([_.done for _ in batch], [-1, 1])
 
-        return st, at, rt1, st1, advantage, previous_states
+        return st, at, rt1, st1, advantage, previous_states, done
 
 def main():
     sess = tf.InteractiveSession()
