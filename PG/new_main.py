@@ -111,7 +111,7 @@ class policy():
 
         return mu, sigma
 
-    def get_scaled_grads(self, pi, normal_dist, adv, params):
+    def get_scaled_grads(self, pi, normal_dist, adv, params, gparams):
         # take log of distribution
         log_prob = normal_dist.log_prob(pi)
         exp_v = log_prob * adv
@@ -126,7 +126,7 @@ class policy():
         a_loss = tf.reduce_mean(-exp_v)
         # taking grads after sum
         scaled_grads = tf.gradients(a_loss, params)
-        return zip(scaled_grads, params)
+        return zip(scaled_grads, gparams)
 
     def train_step(self, grads):
         return self.opt.apply_gradients(grads)
@@ -155,12 +155,22 @@ class game():
 
         with tf.name_scope("policy"):
             pi = policy(sess, self.env, "pi_")
+
             self.mu, self.sigma = pi.get_action(self.input_state_pi)
             # get normal distribution for action
             normal_dist = tf.contrib.distributions.Normal(self.mu, self.sigma)
             # draw a sample from this distribution
             self.pi_u = tf.clip_by_value(tf.squeeze(normal_dist.sample(1), axis=0),
                                          self.A_BOUND[0], self.A_BOUND[1])
+            pi_vars = pi.get_params()
+
+
+        with tf.name_scope("gpolicy"):
+            global_pi = policy(sess, self.env, "gpi_")
+            self.gmu, self.gsigma = global_pi.get_action(self.input_state_pi)
+            gnormal_dist = tf.contrib.distributions.Normal(self.gmu, self.gsigma)
+
+            global_pi_vars = global_pi.get_params()
 
         with tf.name_scope("value_st"):
             vs = v_s(sess, "vs_")
@@ -175,10 +185,21 @@ class game():
             self.qv_loss = qsa.get_loss(source=self.q_value, target=self.target_qv)
             self.train_qv = qsa.train_step(loss=self.qv_loss, t_vars=qsa.get_params())
 
-        self.pi_grads = pi.get_scaled_grads(self.pi_u, normal_dist, self.input_adv, pi.get_params())
-        self.train_pi = pi.train_step(self.pi_grads)
+        self.pi_grads = pi.get_scaled_grads(self.pi_u,
+                                            gnormal_dist,
+                                            self.input_adv,
+                                            pi_vars, global_pi_vars)
+
+        #pull from global
+
+        self.pull_a_params_op = [l_p.assign(g_p) for l_p, g_p in zip(pi_vars, global_pi_vars)]
+        self.train_pi = global_pi.train_step(self.pi_grads)
 
     # (batch_size, timesteps, n_input)
+
+    def pull_global(self):
+        self.sess.run(self.pull_a_params_op)
+
     def get_action(self, ba):
         ba = np.asarray(ba)
         state = np.reshape(ba, [-1, timesteps, num_input])
@@ -310,7 +331,7 @@ class game():
                 # advantage is calculated wrt to current state
                 q_value = self.get_q_value(state=st, action=at)
                 state_value = self.get_state_value(state=st)
-                advantage = q_value - state_value
+                advantage = q_value - rt1
 
                 st = np.reshape(st, [1, state_space])
 
@@ -354,8 +375,11 @@ class game():
         # training q_value
         self.train_q_value(memory, epoch=epoch)
 
-        # train policy
+        # train policy, updates global vars
         self.train_policy(st=st, adv=adv, epoch=epoch)
+
+        # pull trained global vars to local
+        self.pull_global()
 
 
 class ReplayBuffer(object):
