@@ -109,9 +109,12 @@ class policy():
             # tanh gives (-1, 1) scale up in range of action bounds
             mu, sigma = mu * self.A_BOUND[1], sigma + 1e-4
 
-        return mu, sigma
+            # get normal distribution for action
+            normal_dist = tf.contrib.distributions.Normal(mu, sigma)
 
-    def get_scaled_grads(self, pi, normal_dist, adv, params, gparams):
+        return normal_dist
+
+    def get_scaled_grads(self, pi, normal_dist, adv, params):
         # take log of distribution
         log_prob = normal_dist.log_prob(pi)
         exp_v = log_prob * adv
@@ -126,7 +129,7 @@ class policy():
         a_loss = tf.reduce_mean(-exp_v)
         # taking grads after sum
         scaled_grads = tf.gradients(a_loss, params)
-        return zip(scaled_grads, gparams)
+        return scaled_grads
 
     def train_step(self, grads):
         return self.opt.apply_gradients(grads)
@@ -156,9 +159,8 @@ class game():
         with tf.name_scope("policy"):
             pi = policy(sess, self.env, "pi_")
 
-            self.mu, self.sigma = pi.get_action(self.input_state_pi)
-            # get normal distribution for action
-            normal_dist = tf.contrib.distributions.Normal(self.mu, self.sigma)
+            normal_dist = pi.get_action(self.input_state_pi)
+
             # draw a sample from this distribution
             self.pi_u = tf.clip_by_value(tf.squeeze(normal_dist.sample(1), axis=0),
                                          self.A_BOUND[0], self.A_BOUND[1])
@@ -167,9 +169,7 @@ class game():
 
         with tf.name_scope("gpolicy"):
             global_pi = policy(sess, self.env, "gpi_")
-            self.gmu, self.gsigma = global_pi.get_action(self.input_state_pi)
-            gnormal_dist = tf.contrib.distributions.Normal(self.gmu, self.gsigma)
-
+            gnormal_dist = global_pi.get_action(self.input_state_pi)
             global_pi_vars = global_pi.get_params()
 
         with tf.name_scope("value_st"):
@@ -186,14 +186,14 @@ class game():
             self.train_qv = qsa.train_step(loss=self.qv_loss, t_vars=qsa.get_params())
 
         self.pi_grads = pi.get_scaled_grads(self.pi_u,
-                                            gnormal_dist,
+                                            normal_dist,
                                             self.input_adv,
-                                            pi_vars, global_pi_vars)
+                                            pi_vars)
 
         #pull from global
 
         self.pull_a_params_op = [l_p.assign(g_p) for l_p, g_p in zip(pi_vars, global_pi_vars)]
-        self.train_pi = global_pi.train_step(self.pi_grads)
+        self.train_pi = global_pi.train_step(zip(self.pi_grads, global_pi_vars))
 
     # (batch_size, timesteps, n_input)
 
@@ -436,6 +436,7 @@ def main():
     memory = ReplayBuffer(1000000)
     sess.run(tf.global_variables_initializer())
     #for epoch in range(0, 1000):
+    gm.pull_global()
     epoch = 0
     while True:
         epoch += 1
