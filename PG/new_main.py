@@ -14,6 +14,8 @@ num_hidden = 50
 batch_size = 50
 rolls_per_batch = 10
 MAX_EP_STEP = 300 # maximum number of steps per episode
+LOG = "logdir/"
+MODEL_PATH = "saved_model/"
 
 class EnvProp:
     def __init__(self, env):
@@ -29,34 +31,11 @@ class EnvProp:
         # max episodes to run overall
         self.max_episodes = 2000
 
-class StateAttr:
-    def __init__(self, st):
-        self.prev_state = None
-        self.current_state = st
-        self.action_taken = None
-        self.next_state = None
-        self.reward_gotten = None
-        self.advantage = None
-        self.state_value = None
-        self.done = False
-
-    def update_reward_value(self, value):
-        value = np.reshape(np.asarray(value), [1, rewards_space])
-        self.reward_gotten = value
-
-    def update_advantage_value(self, value):
-        value = np.reshape(np.asarray(value), [1, rewards_space])
-        self.advantage = value
-
-    def update_state_value(self, value):
-        value = np.reshape(np.asarray(value), [1, rewards_space])
-        self.state_value = value
-
 class v_s():
     def __init__(self, sess, name):
         self.sess = sess
         self.name = name
-        self.opt = tf.train.RMSPropOptimizer(learning_rate=0.01, epsilon=1e-4)
+        self.opt = tf.train.RMSPropOptimizer(learning_rate=0.001)
 
     def get_value(self, state, reuse=False):
         n = self.name
@@ -84,7 +63,7 @@ class Policy:
         self.name = name
         self.ENTROPY_BETA = 0.01
         self.A_BOUND = [env.action_space.low, env.action_space.high]
-        self.opt = tf.train.RMSPropOptimizer(learning_rate=0.001, epsilon=1e-4)
+        self.opt = tf.train.RMSPropOptimizer(learning_rate=0.0001)
 
     # policy returns a distribution N(mu, sd)
     def get_action(self, states, reuse=False):
@@ -96,7 +75,7 @@ class Policy:
             outputs, states = rnn.static_rnn(self.lstm_cell, x, dtype=tf.float32)
             outputs[-1]
             '''
-            fc1 = tf.layers.dense(states, 200, activation=tf.nn.relu, name=n+"fc1")
+            fc1 = tf.layers.dense(states, 300, activation=tf.nn.relu, name=n+"fc1")
             mu = tf.layers.dense(fc1, 1, activation=tf.nn.tanh, name=n + "mu")
             sigma = tf.layers.dense(fc1, 1, activation=tf.nn.softplus, name=n+"sigma")
 
@@ -133,12 +112,19 @@ class game():
         self.memory = ReplayBuffer(100000)
         self.episodes = 0
         self.avg_rewards = []
+        data = dict()
 
         with tf.name_scope("Inputs"):
             self.input_state = tf.placeholder("float", [None, state_space], name="input_state")
             self.input_action = tf.placeholder("float", [None, action_space], name="input_action")
-            self.input_adv = tf.placeholder("float", [None, rewards_space], name="input_advantage")
             self.target_vs = tf.placeholder("float", [None, rewards_space], name="target_vs")
+
+        with tf.name_scope("value_st"):
+            vs = v_s(sess, "vs_")
+            self.state_value = vs.get_value(state=self.input_state)
+            self.vs_loss = vs.get_loss(source=self.state_value, target=self.target_vs)
+            data["value_loss"] = self.vs_loss
+            self.train_sv = vs.train_step(loss=self.vs_loss, t_vars=vs.get_params())
 
         with tf.name_scope("local_policy"):
             pi = Policy(sess, self.game_env.env, "pi_")
@@ -149,9 +135,11 @@ class game():
                                          self.game_env.a_bound[0],
                                          self.game_env.a_bound[1])
 
+            self.advantage = self.target_vs - self.state_value
+
             self.pi_grads = pi.get_scaled_grads(self.input_action,
                                                 normal_dist,
-                                                self.input_adv,
+                                                self.advantage,
                                                 pi.get_params())
             self.pi_vars = pi.get_params()
 
@@ -160,15 +148,17 @@ class game():
             gnormal_dist = global_pi.get_action(self.input_state)
             self.global_pi_vars = global_pi.get_params()
 
-        with tf.name_scope("value_st"):
-            vs = v_s(sess, "vs_")
-            self.state_value = vs.get_value(state=self.input_state)
-            self.vs_loss = vs.get_loss(source=self.state_value, target=self.target_vs)
-            self.train_sv = vs.train_step(loss=self.vs_loss, t_vars=vs.get_params())
-
         #pull from global
         self.pull_a_params_op = [tf.assign(l_p, g_p) for l_p, g_p in zip(self.pi_vars, self.global_pi_vars)]
         self.train_pi = global_pi.train_step(zip(self.pi_grads, self.global_pi_vars))
+
+        self.tensorboard_summary(data)
+        with tf.name_scope("Tensorboard"):
+            self.merged = tf.summary.merge_all()
+
+    def tensorboard_summary(self, data):
+        with tf.name_scope("summary/losses"):
+            tf.summary.scalar("value_loss", data["value_loss"])
 
     # (batch_size, timesteps, n_input)
     def print_local_vars(self):
@@ -203,22 +193,28 @@ class game():
         return value
 
     # training based on off policy ( td with monte carlo learning)
-    def train_state_value(self, memory):
-        st, at, rt, st1, advantage, state_value, done = memory.sample_batch(batch_size)
+    def train_state_value(self, state, target_vs):
+        #st, at, rt, st1, advantage, state_value, done = memory.sample_batch(batch_size)
+        st = np.reshape(state, [-1, state_space])
+        rt = np.reshape(target_vs, [-1, rewards_space])
         feed_dict = {self.input_state: st,
                      self.target_vs: rt}
         self.sess.run(self.train_sv, feed_dict=feed_dict)
         return self.sess.run(self.vs_loss, feed_dict=feed_dict)
 
-    def train_policy(self, tr):
-        st = [np.reshape(v.current_state, [-1, state_space]) for v in tr]
-        act = [np.reshape(v.action_taken, [-1, state_space]) for v in tr]
-        adv = [np.reshape(v.advantage, [-1, rewards_space]) for v in tr]
-        st = np.reshape(st, [-1, state_space])
-        adv = np.reshape(adv, [-1, rewards_space])
+    def get_summary(self):
+        st, at, rt, st1, advantage, state_value, done = self.memory.sample_batch(batch_size)
+        feed_dict = {self.input_state: st,
+                     self.target_vs: rt}
+        return self.sess.run(self.merged, feed_dict=feed_dict)
+
+    def train_policy(self, state, action, value):
+        st = np.reshape(state, [-1, state_space])
+        act = np.reshape(action, [-1, action_space])
+        val = np.reshape(value, [-1, rewards_space])
         feed_dict = {self.input_state: st,
                      self.input_action: act,
-                     self.input_adv: adv}
+                     self.target_vs: val}
         self.sess.run(self.train_pi, feed_dict=feed_dict)
 
     def compute_returns(self, states):
@@ -239,11 +235,12 @@ class game():
             states[i].update_advantage_value(advantage)
             self.memory.add(states[i])
 
-    def run(self):
+    def run(self, saver, writer):
         train_step = 0
+        total_step = 0
         # pull trained global net vars to local net
         self.pull_global()
-        episodes_col = list()
+        buffer_s, buffer_a, buffer_r = [], [], []
         while self.episodes < self.game_env.max_episodes:
             self.game_env.env.reset()
             done, steps, net_rewards, states = False, 0, 0.0, list()
@@ -252,54 +249,66 @@ class game():
             st = np.reshape(np.asarray(st), [1, self.game_env.state_space])
 
             # run one episode
-            while not done:
+            for ep_t in range(self.game_env.max_ep_step):
                 self.game_env.env.render()
                 at = self.get_action(st)
                 st1, rt1, done, info = self.game_env.env.step(at)
                 st1 = np.reshape(st1, [1, state_space])
 
-                if steps >= self.game_env.max_ep_step:
-                    done = True
-
-                rt1 = (rt1 + 8.0) / 8.0
+                done = True if ep_t == self.game_env.max_ep_step - 1 else False
                 net_rewards += rt1
 
-                state_value = self.get_state_value(state=st)
+                buffer_s.append(st)
+                buffer_a.append(at)
+                buffer_r.append((rt1 + 8) / 8)
 
-                stattr = StateAttr(np.reshape(st, [1, state_space]))
-                stattr.next_state = np.reshape(st1, [1, state_space])
-                stattr.action_taken = np.reshape(at, [1, action_space])
-                stattr.reward_gotten = np.reshape(rt1, [1, rewards_space])
-                stattr.state_value = np.reshape(state_value, [1, rewards_space])
-                stattr.done = True if done else False
 
-                states.append(stattr)
-
-                st = st1
                 steps += 1
+
+                if (total_step % self.game_env.max_ep_per_train == 0) or done:
+
+                    if done:
+                        v_s_ = 0  # terminal
+                    else:
+                        v_s_ = self.get_state_value(state=st)
+
+                    buffer_v_target = []
+                    for r in buffer_r[::-1]:
+                        v_s_ = r + 0.9 * v_s_
+                        buffer_v_target.append(v_s_)
+                    buffer_v_target.reverse()
+
+                    vs_loss = self.train_state_value(buffer_s, buffer_v_target)
+
+                    self.train_policy(buffer_s, buffer_a, buffer_v_target)
+
+                    self.memory.add((buffer_s, buffer_a, buffer_v_target))
+
+                    # discard episodes used for training pi
+                    buffer_s, buffer_a, buffer_r = [], [], []
+                    # pull trained global net vars to local net
+                    self.pull_global()
+                    train_step += 1
+                    print("training step {}: loss {}, avg_rewards {}".format(train_step, vs_loss,
+                                                                             np.mean(self.avg_rewards)))
+                
+                st = st1
+                total_step += 1
 
             # -- finished one episode --
             self.episodes += 1
-            # returns update by reference
-            self.compute_returns(states)
-            # discount returns for one episode and collect them in collection
-            episodes_col.extend(states)
 
             # computer running average rewards
             self.avg_rewards.append(net_rewards)
             if self.episodes > 10:
                 self.avg_rewards.pop(0)
 
-            if self.episodes % self.game_env.max_ep_per_train == 0:
-                vs_loss = self.train_state_value(self.memory)
-                self.train_policy(list(episodes_col))
-                # discard episodes used for training pi
-                episodes_col = list()
-                # pull trained global net vars to local net
-                self.pull_global()
-                train_step += 1
-                print("training step {}: loss {}, avg_rewards {}".format(train_step, vs_loss, np.mean(self.avg_rewards)))
+            summary = self.get_summary()
+            writer.add_summary(summary, self.episodes)
 
+            if self.episodes % 100 == 0:
+                save_path = saver.save(self.sess, MODEL_PATH + "pretrained.ckpt", global_step=train_step)
+                print("saved to %s" % save_path)
 
 class ReplayBuffer(object):
 
@@ -333,22 +342,24 @@ class ReplayBuffer(object):
             else:
                 batch = random.sample(list(self.buffer)[len(self.buffer)/2:], sample_size)
 
-        st = np.reshape([_.current_state for _ in batch], [-1, state_space])
-        at = np.reshape([_.action_taken for _ in batch], [-1, action_space])
-        rt1 = np.reshape([_.reward_gotten for _ in batch], [-1, rewards_space])
-        st1 = np.reshape([_.next_state for _ in batch], [-1, state_space])
-        advantage = np.reshape([_.advantage for _ in batch], [-1, rewards_space])
-        state_value = np.reshape([_.state_value for _ in batch], [-1, rewards_space])
-        done = np.reshape([_.done for _ in batch], [-1, 1])
-
-        return st, at, rt1, st1, advantage, state_value, done
+        return batch
 
 
 def main():
     sess = tf.InteractiveSession()
     gm = game(sess)
+    saver = tf.train.Saver()
     sess.run(tf.global_variables_initializer())
-    gm.run()
+    writer = tf.summary.FileWriter(LOG, sess.graph)
+
+    checkpoint = tf.train.get_checkpoint_state(MODEL_PATH)
+    if checkpoint and checkpoint.model_checkpoint_path:
+        saver.restore(sess, checkpoint.model_checkpoint_path)
+        print("Successfully loaded:", checkpoint.model_checkpoint_path)
+    else:
+        print("Could not find old network weights")
+
+    gm.run(saver, writer)
 
 
 if __name__ == "__main__":
