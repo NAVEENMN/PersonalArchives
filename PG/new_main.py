@@ -297,8 +297,8 @@ class game():
 
                 st = st1
                 total_step += 1
-
-                self.train_state_value(None, None, from_memory=True)
+                if total_step > 100:
+                    self.train_state_value(None, None, from_memory=True)
 
             # -- finished one episode --
             self.episodes += 1
