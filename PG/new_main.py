@@ -36,7 +36,10 @@ class v_s():
         self.sess = sess
         self.name = name
         self.opt = tf.train.RMSPropOptimizer(learning_rate=0.001)
+<<<<<<< HEAD
 
+=======
+>>>>>>> f6643b28cbc77d16b4898f0547f099ecbfbad79d
 
     def get_value(self, state, reuse=False):
         n = self.name
@@ -56,8 +59,13 @@ class v_s():
 
     def get_params(self):
         return [var for var in tf.trainable_variables() if self.name in var.name]
+<<<<<<< HEAD
 
 
+=======
+
+
+>>>>>>> f6643b28cbc77d16b4898f0547f099ecbfbad79d
 class Policy:
     def __init__(self, sess, env, name):
         self.sess = sess
@@ -152,11 +160,19 @@ class game():
         #pull from global
         self.pull_a_params_op = [tf.assign(l_p, g_p) for l_p, g_p in zip(self.pi_vars, self.global_pi_vars)]
         self.train_pi = global_pi.train_step(zip(self.pi_grads, self.global_pi_vars))
+<<<<<<< HEAD
 
         self.tensorboard_summary(data)
         with tf.name_scope("Tensorboard"):
             self.merged = tf.summary.merge_all()
 
+=======
+
+        self.tensorboard_summary(data)
+        with tf.name_scope("Tensorboard"):
+            self.merged = tf.summary.merge_all()
+
+>>>>>>> f6643b28cbc77d16b4898f0547f099ecbfbad79d
     def tensorboard_summary(self, data):
         with tf.name_scope("summary/losses"):
             tf.summary.scalar("value_loss", data["value_loss"])
@@ -194,9 +210,14 @@ class game():
         return value
 
     # training based on off policy ( td with monte carlo learning)
+<<<<<<< HEAD
     def train_state_value(self, state, target_vs, from_memory=False):
         if from_memory:
             state, target_vs = self.memory.sample_batch(batch_size)
+=======
+    def train_state_value(self, state, target_vs):
+        #st, at, rt, st1, advantage, state_value, done = memory.sample_batch(batch_size)
+>>>>>>> f6643b28cbc77d16b4898f0547f099ecbfbad79d
         st = np.reshape(state, [-1, state_space])
         rt = np.reshape(target_vs, [-1, rewards_space])
         feed_dict = {self.input_state: st,
@@ -205,6 +226,7 @@ class game():
         return self.sess.run(self.vs_loss, feed_dict=feed_dict)
 
     def get_summary(self):
+<<<<<<< HEAD
         st, state_value = self.memory.sample_batch(batch_size)
         st = np.reshape(st, [-1, state_space])
         state_value = np.reshape(state_value, [-1, rewards_space])
@@ -217,6 +239,18 @@ class game():
         act = np.reshape(action, [-1, action_space])
         val = np.reshape(value, [-1, rewards_space])
         feed_dict = {self.input_state: st,
+=======
+        st, at, rt, st1, advantage, state_value, done = self.memory.sample_batch(batch_size)
+        feed_dict = {self.input_state: st,
+                     self.target_vs: rt}
+        return self.sess.run(self.merged, feed_dict=feed_dict)
+
+    def train_policy(self, state, action, value):
+        st = np.reshape(state, [-1, state_space])
+        act = np.reshape(action, [-1, action_space])
+        val = np.reshape(value, [-1, rewards_space])
+        feed_dict = {self.input_state: st,
+>>>>>>> f6643b28cbc77d16b4898f0547f099ecbfbad79d
                      self.input_action: act,
                      self.target_vs: val}
         self.sess.run(self.train_pi, feed_dict=feed_dict)
@@ -225,7 +259,11 @@ class game():
         buffer_v_target = []
 
         # Monte carlo estimates
+<<<<<<< HEAD
         v_s_ = np.asarray([0.0])
+=======
+        v_s_ = np.asarray(0.0)
+>>>>>>> f6643b28cbc77d16b4898f0547f099ecbfbad79d
         for st in states[::-1]:
             v_s_ = np.add(st.reward_gotten, np.multiply(0.9, v_s_))
             buffer_v_target.append(v_s_)
@@ -266,10 +304,18 @@ class game():
                 buffer_a.append(at)
                 buffer_r.append((rt1 + 8) / 8)
 
+<<<<<<< HEAD
                 steps += 1
 
                 if (total_step % self.game_env.max_ep_per_train == 0) or done:
 
+=======
+
+                steps += 1
+
+                if (total_step % self.game_env.max_ep_per_train == 0) or done:
+
+>>>>>>> f6643b28cbc77d16b4898f0547f099ecbfbad79d
                     if done:
                         v_s_ = 0  # terminal
                     else:
@@ -281,12 +327,20 @@ class game():
                         buffer_v_target.append(v_s_)
                     buffer_v_target.reverse()
 
+<<<<<<< HEAD
                     for i in range(0, len(buffer_s)):
                         self.memory.add((buffer_s[i], buffer_v_target[i]))
 
                     vs_loss = self.train_state_value(buffer_s, buffer_v_target)
 
                     self.train_policy(buffer_s, buffer_a, buffer_v_target)
+=======
+                    vs_loss = self.train_state_value(buffer_s, buffer_v_target)
+
+                    self.train_policy(buffer_s, buffer_a, buffer_v_target)
+
+                    self.memory.add((buffer_s, buffer_a, buffer_v_target))
+>>>>>>> f6643b28cbc77d16b4898f0547f099ecbfbad79d
 
                     # discard episodes used for training pi
                     buffer_s, buffer_a, buffer_r = [], [], []
@@ -298,7 +352,10 @@ class game():
                 
                 st = st1
                 total_step += 1
+<<<<<<< HEAD
                 self.train_state_value(None, None, from_memory=True)
+=======
+>>>>>>> f6643b28cbc77d16b4898f0547f099ecbfbad79d
 
             # -- finished one episode --
             self.episodes += 1
@@ -344,6 +401,7 @@ class ReplayBuffer(object):
             # with prob of 0.6 or more sample most recent events
             if random.uniform(0, 1) < 0.4:
                 batch = random.sample(self.buffer, sample_size)
+<<<<<<< HEAD
 
             else:
                 batch = random.sample(list(self.buffer)[len(self.buffer)/2:], sample_size)
@@ -352,6 +410,12 @@ class ReplayBuffer(object):
         values = np.reshape([_[1] for _ in batch], [-1, rewards_space])
 
         return states, values
+=======
+            else:
+                batch = random.sample(list(self.buffer)[len(self.buffer)/2:], sample_size)
+
+        return batch
+>>>>>>> f6643b28cbc77d16b4898f0547f099ecbfbad79d
 
 
 def main():
