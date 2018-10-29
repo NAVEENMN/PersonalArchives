@@ -11,11 +11,27 @@ rewards_space = 1
 timesteps = 2
 num_input = 3
 num_hidden = 50
-batch_size = 50
+batch_size = 100
 rolls_per_batch = 10
-MAX_EP_STEP = 300 # maximum number of steps per episode
+MAX_EP_STEP = 200 # maximum number of steps per episode
 LOG = "logdir/"
 MODEL_PATH = "saved_model/"
+
+'''
+--- Trajectory analysis ---
+tr1: S0->S1->S2....->S10 (increasing rewards : good trajectory)
+tr2: S0->S1->S3->S4(End) (reaching terminal state : bad trajectory)
+tr3: S0->S1->S3->...->S10 (decreasing rewards : bad trajectory)
+tr4: S0->S1->S3->...->S200 (taking too long : bad trajectory)
+--- Value estimation ---
+tr1: S0->S1->S2....->S10 (increasing rewards : good trajectory)
+tr1: -0.9->-0.8->...->0.0 | if done v_s init to 0.0 else rt+1
+s_v:  v_s = rt + 0.9 * v_s
+--- Batching ---
+memory : [tr1, tr2, ....]
+update policy for 10 trajectories : [tri, tri+1, ..., tri+10]
+update value by sampling memory : sample(memory)
+'''
 
 class EnvProp:
     def __init__(self, env):
@@ -92,7 +108,7 @@ class Policy:
         exp_v = log_prob * adv
         entropy = normal_dist.entropy() # add noise to explore
         exp_v = self.ENTROPY_BETA * entropy + exp_v
-        a_loss = tf.reduce_mean(-exp_v)
+        a_loss = tf.reduce_sum(-exp_v)/10
 
         # taking grads after sum
         scaled_grads = tf.gradients(a_loss, params)
@@ -244,6 +260,8 @@ class game():
         # pull trained global net vars to local net
         self.pull_global()
         buffer_s, buffer_a, buffer_r = [], [], []
+        t_states, t_actions, t_values = [], [], []
+        traj_count = 0
         while self.episodes < self.game_env.max_episodes:
             self.game_env.env.reset()
             done, steps, net_rewards, states = False, 0, 0.0, list()
@@ -251,14 +269,17 @@ class game():
             st, _, _, _ = self.game_env.env.step(action)
             st = np.reshape(np.asarray(st), [1, self.game_env.state_space])
 
-            # run one episode
+            # run one episode at max 200 steps
+            # 10 steps makes one trajectory
             for ep_t in range(self.game_env.max_ep_step):
                 self.game_env.env.render()
                 at = self.get_action(st)
                 st1, rt1, done, info = self.game_env.env.step(at)
                 st1 = np.reshape(st1, [1, state_space])
 
-                done = True if ep_t == self.game_env.max_ep_step - 1 else False
+                if not done:
+                    done = True if ep_t == self.game_env.max_ep_step - 1 else False
+
                 net_rewards += rt1
 
                 buffer_s.append(st)
@@ -268,6 +289,8 @@ class game():
                 steps += 1
 
                 if (total_step % self.game_env.max_ep_per_train == 0) or done:
+
+                    traj_count += 1
 
                     if done:
                         v_s_ = 0  # terminal
@@ -283,22 +306,30 @@ class game():
                     for i in range(0, len(buffer_s)):
                         self.memory.add((buffer_s[i], buffer_v_target[i]))
 
-                    vs_loss = self.train_state_value(buffer_s, buffer_v_target)
+                    t_states.extend(buffer_s)
+                    t_actions.extend(buffer_a)
+                    t_values.extend(buffer_v_target)
 
-                    self.train_policy(buffer_s, buffer_a, buffer_v_target)
+                    if traj_count == 10:
+                        vs_loss = self.train_state_value(buffer_s, buffer_v_target)
+                        if self.episodes > 10:
+                            self.train_state_value(None, None, from_memory=True)
+                        self.train_policy(t_states, t_actions, t_values)
+                        # pull trained global net vars to local net
+                        self.pull_global()
+                        traj_count = 0
+                        # discard trajectories
+                        t_states, t_actions, t_values = [], [], []
+                        train_step += 1
+                        print("training step {}: loss {}, avg_rewards {}".format(train_step, vs_loss,
+                                                                                 np.mean(self.avg_rewards)))
 
-                    # discard episodes used for training pi
+                    # discard steps buffers
                     buffer_s, buffer_a, buffer_r = [], [], []
-                    # pull trained global net vars to local net
-                    self.pull_global()
-                    train_step += 1
-                    print("training step {}: loss {}, avg_rewards {}".format(train_step, vs_loss,
-                                                                             np.mean(self.avg_rewards)))
+
 
                 st = st1
                 total_step += 1
-                if total_step > 100:
-                    self.train_state_value(None, None, from_memory=True)
 
             # -- finished one episode --
             self.episodes += 1
