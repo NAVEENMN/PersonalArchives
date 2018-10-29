@@ -203,7 +203,7 @@ class game():
         return self.sess.run(self.vs_loss, feed_dict=feed_dict)
 
     def get_summary(self):
-        st, at, rt, st1, advantage, state_value, done = self.memory.sample_batch(batch_size)
+        batch = self.memory.sample_batch(batch_size)
         feed_dict = {self.input_state: st,
                      self.target_vs: rt}
         return self.sess.run(self.merged, feed_dict=feed_dict)
@@ -291,7 +291,7 @@ class game():
                     train_step += 1
                     print("training step {}: loss {}, avg_rewards {}".format(train_step, vs_loss,
                                                                              np.mean(self.avg_rewards)))
-                
+
                 st = st1
                 total_step += 1
 
@@ -303,8 +303,8 @@ class game():
             if self.episodes > 10:
                 self.avg_rewards.pop(0)
 
-            summary = self.get_summary()
-            writer.add_summary(summary, self.episodes)
+            #summary = self.get_summary()
+            #writer.add_summary(summary, self.episodes)
 
             if self.episodes % 100 == 0:
                 save_path = saver.save(self.sess, MODEL_PATH + "pretrained.ckpt", global_step=train_step)
