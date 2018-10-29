@@ -13,7 +13,7 @@ timesteps = 2
 num_input = 3
 num_hidden = 50
 batch_size = 50
-rolls_per_batch = 10
+rolls_per_batch = 4
 MAX_EP_STEP = 200 # maxumum number of steps per episode
 
 class state_attr():
