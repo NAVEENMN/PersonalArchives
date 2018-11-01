@@ -4,6 +4,7 @@ import threading
 import numpy as np
 import multiprocessing
 import tensorflow as tf
+from tensorflow.contrib import rnn
 
 global global_rewards
 global global_episodes
@@ -13,6 +14,9 @@ UPDATE_GLOBAL_ITER = 10
 MAX_EP_STEP = 200
 MAX_GLOBAL_EP = 2000
 N_WORKERS = multiprocessing.cpu_count()
+timesteps = 2
+num_input = 3
+num_hidden = 200
 
 class GameEnv:
     def __init__(self):
@@ -32,13 +36,17 @@ class ActorCritic:
         scope = scope
         self.actor_optimizer = tf.train.RMSPropOptimizer(0.0001, name='RMSPropA')
         self.critic_optimizer = tf.train.RMSPropOptimizer(0.001, name='RMSPropC')
+        self.lstm_cell = rnn.BasicLSTMCell(num_hidden, forget_bias=1.0)
 
         with tf.variable_scope(scope):
             self.state_ph = tf.placeholder(tf.float32, [None, env.state_space], self.name+'input_st_ph')
+            self.input_state_pi = tf.placeholder("float", [None, timesteps, num_input], name="input_state_pi")
             self.action_ph = tf.placeholder(tf.float32, [None, env.action_space], self.name + 'input_at_ph')
             self.value_target = tf.placeholder(tf.float32, [None, env.reward_space], self.name + 'input_v_ph')
 
-            self.mu, self.sigma, self.value, self.a_params, self.c_params = self.net(self.state_ph, scope)
+            self.mu, self.sigma, self.value, self.a_params, self.c_params = self.net(self.state_ph,
+                                                                                     self.input_state_pi,
+                                                                                     scope)
 
             td = tf.subtract(self.value_target, self.value, name='TD_error')
             self.c_loss = self.get_critic_loss(td)
@@ -79,9 +87,10 @@ class ActorCritic:
     def get_critic_params(self):
         return self.c_params
 
-    def get_action(self, state):
+    def get_action(self, state, states):
         state = np.reshape(state, [-1, self.game_env.state_space])
-        return self.sess.run(self.A, feed_dict={self.state_ph: state})
+        states = np.reshape(states, [-1, 2, self.game_env.state_space])
+        return self.sess.run(self.A, feed_dict={self.state_ph: state, self.input_state_pi: states})
 
     def get_value(self, state):
         state = np.reshape(state, [-1, self.game_env.state_space])
@@ -114,10 +123,12 @@ class ActorCritic:
             c_loss = tf.reduce_mean(tf.square(td))
         return c_loss
 
-    def net(self, state, scope):
+    def net(self, state, states, scope):
         w_init = tf.random_normal_initializer(0., .1)
         with tf.variable_scope('actor'):
-            pfc1 = tf.layers.dense(state, 200, tf.nn.relu6, kernel_initializer=w_init, name='pfc1')
+            x = tf.unstack(states, timesteps, 1, name="unstack")
+            outputs, states = rnn.static_rnn(self.lstm_cell, x, dtype=tf.float32)
+            pfc1 = tf.layers.dense(outputs[-1], 200, tf.nn.relu6, kernel_initializer=w_init, name='pfc1')
             mu = tf.layers.dense(pfc1, self.game_env.action_space, tf.nn.tanh, kernel_initializer=w_init, name='mu')
             sigma = tf.layers.dense(pfc1, self.game_env.action_space, tf.nn.softplus, kernel_initializer=w_init, name='sigma')
         with tf.variable_scope('critic'):
@@ -161,15 +172,18 @@ class Worker:
         global global_rewards
         global global_episodes
         total_step = 1
-        buffer_s, buffer_a, buffer_r = [], [], []
+        pbuffer_s, buffer_s, buffer_a, buffer_r = [], [], [], []
+        prev_st = []
         while not self.coord.should_stop() and global_episodes < MAX_GLOBAL_EP:
             st = self.env.env.reset()
             st = np.reshape(st, [-1, self.env.state_space])
+            prev_st = [st, st]
             ep_r = 0
             for ep_t in range(MAX_EP_STEP):
                 if 'W_0' in self.name:
                     self.env.env.render()
-                at = self.local_ac.get_action(st)
+
+                at = self.local_ac.get_action(st, prev_st)
                 st1, r, done, info = self.env.env.step(at)
                 st1 = np.reshape(st1, [-1, self.env.state_space])
                 at = np.reshape(at, [-1, self.env.action_space])
@@ -177,6 +191,7 @@ class Worker:
                 done = True if ep_t == MAX_EP_STEP - 1 else False
                 ep_r += r
 
+                pbuffer_s.append(prev_st)
                 buffer_s.append(st)
                 buffer_a.append(at)
                 buffer_r.append((r + 8) / 8)
@@ -193,14 +208,21 @@ class Worker:
                     buffer_s = np.reshape(buffer_s, [-1, self.env.state_space])
                     buffer_a = np.reshape(buffer_a, [-1, self.env.action_space])
                     buffer_v_target = np.reshape(buffer_v_target, [-1, self.env.reward_space])
+                    pbuffer_s = np.reshape(pbuffer_s, [-1, 2, 3])
+
+
 
                     feed_dict = {self.local_ac.state_ph: buffer_s,
+                                 self.local_ac.input_state_pi: pbuffer_s,
                                  self.local_ac.action_ph: buffer_a,
                                  self.local_ac.value_target: buffer_v_target}
 
                     self.local_ac.push_weights(feed_dict)
-                    buffer_s, buffer_a, buffer_r = [], [], []
+                    buffer_s, buffer_a, buffer_r, pbuffer_s = [], [], [], []
                     self.local_ac.pull_weights()
+
+                prev_st.append(st1)
+                prev_st.pop(0)
 
                 st = st1
                 total_step += 1
@@ -255,16 +277,20 @@ class Controller:
 
         done = False
         st = env.env.reset()
+        st = np.reshape(st, [-1, env.state_space])
         stcnt = 0
+        prev_st = [st, st]
         while not done:
             env.env.render()
             st = np.reshape(st, [-1, env.state_space])
-            at = self.global_ac.get_action(st)
+            at = self.global_ac.get_action(st, prev_st)
             st1, rt, done, info = env.env.step(at)
             print("cos{}: {}, sin{}: {}".format(np.arccos(st1[0]*3.14), st1[0], np.arcsin(st1[1]*3.14), st1[1]))
             print("theta dot {} {}".format(np.arccos(st1[0])*np.arcsin(st1[1]), st1[2]))
             st1 = np.reshape(st1, [-1, env.state_space])
             st = st1
+            prev_st.append(st1)
+            prev_st.pop(0)
             stcnt += 1
             if stcnt > 1000:
                 done = True
@@ -275,7 +301,7 @@ def main():
     global global_episodes
     global_episodes = 0
     sess = tf.Session()
-    Controller(sess, "test")
+    Controller(sess, "train")
 
 if __name__ == "__main__":
     main()
