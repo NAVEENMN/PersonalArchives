@@ -1,6 +1,6 @@
 import tensorflow as tf
+from defs import *
 import numpy as np
-
 
 #------ State encoder decoder -----#
 class state_encoder_decoder():
@@ -8,8 +8,6 @@ class state_encoder_decoder():
         self.name = name
         self.en_name = name+"_encode_"
         self.dec_name = name+"_decode_"
-        self.en_latent_dim = 32
-        self.dec_latent_dim = 32
         self.opt = tf.train.AdamOptimizer(0.0001)
         
     def encode(self, state, reuse):
@@ -22,7 +20,7 @@ class state_encoder_decoder():
             conv3 = tf.layers.max_pooling2d(conv3, 2, 2, name=self.en_name+"conv3_pool")
             h_conv3_flat = tf.contrib.layers.flatten(conv3)
             fc1 = tf.layers.dense(h_conv3_flat, 1024, activation=tf.nn.tanh, name=self.en_name+"fc1")
-            z = tf.layers.dense(fc1, self.en_latent_dim, activation=tf.nn.tanh, name=self.en_name+"fc2")
+            z = tf.layers.dense(fc1, LATENT_DIM, activation=tf.nn.tanh, name=self.en_name+"fc2")
         return z
     
     def decode(self, state_latent, reuse):
@@ -86,3 +84,21 @@ class policy():
         tvars = tf.trainable_variables()
         vars = [var for var in tvars if self.name in var.name]
         return vars
+
+#------ Tensorboard ----#
+def tensorboard_summary(data):
+    st = data["source_image"]
+    st_recon = data["reconstructed_image"]
+    #sr_feature_recon = data["sr_feature"]
+    with tf.name_scope("summary/images"):
+        source_image = st * 255.0 
+        recon_image = st_recon * 255.0
+        #sr_feature_recon = sr_feature_recon * 255.0
+        image_to_tb = tf.concat([source_image, recon_image], axis=1)
+        #image_to_tb = tf.concat([image_to_tb, sr_feature_recon], axis=1)
+        tf.summary.image('src', image_to_tb, 5)
+
+    with tf.name_scope("summary/losses"):
+        tf.summary.scalar("StRecon_loss", data["reconstruction_loss"])
+        #tf.summary.scalar("SR_loss", data["sr_loss"])
+        
