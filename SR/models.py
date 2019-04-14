@@ -62,3 +62,27 @@ class state_encoder_decoder():
         vars = [var for var in tvars if self.name in var.name]
         return vars
 
+
+#------ Policy -----#
+class policy():
+    def __init__(self, name):
+        self.name = name
+        self.opt = tf.train.AdamOptimizer(learning_rate=0.001, epsilon=1e-4)
+
+    def sample(self, state_latent, reuse=False):
+        n = self.name
+        with tf.variable_scope(self.name, reuse=reuse):
+            ex_fc1 = tf.layers.dense(state_latent, 32, activation=tf.nn.relu, name=n+"Ex_fc1")
+            ex_fc2 = tf.layers.dense(ex_fc1, 20, activation=tf.nn.tanh, name=n+"Ex_fc2")
+            ex_out = tf.layers.dense(ex_fc2, 3, activation=tf.nn.sigmoid, name=n+"Ex_out")
+
+            in_fc1 = tf.layers.dense(state_latent, 32, activation=tf.nn.relu, name=n+"In_fc1")
+            in_fc2 = tf.layers.dense(in_fc1, 20, activation=tf.nn.tanh, name=n+"In_fc2")
+            in_out = tf.layers.dense(in_fc2, 3, activation=tf.nn.sigmoid, name=n+"In_out")
+            in_out = tf.multiply(-1.0, in_out)
+        return ex_out, in_out
+
+    def get_vars(self):
+        tvars = tf.trainable_variables()
+        vars = [var for var in tvars if self.name in var.name]
+        return vars
