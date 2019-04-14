@@ -48,9 +48,9 @@ class ReplayBuffer(object):
         else:
             batch = random.sample(self.buffer, batch_size)
         s_batch = np.reshape([_[0] for _ in batch], [-1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNEL])
-        a_batch = np.reshape([_[2] for _ in batch], [-1, ACTION_SPACE])
-        r_batch = np.reshape([_[3] for _ in batch], [-1, 1])
-        s2_batch = np.reshape([_[4] for _ in batch], [-1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNEL])
-        done_batch = np.reshape([_[6] for _ in batch], [-1, 1])
+        a_batch = np.reshape([_[1] for _ in batch], [-1, ACTION_SPACE])
+        r_batch = np.reshape([_[2] for _ in batch], [-1, 1])
+        s2_batch = np.reshape([_[3] for _ in batch], [-1, IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_CHANNEL])
+        done_batch = np.reshape([_[4] for _ in batch], [-1, 1])
 
         return s_batch, a_batch, r_batch, s2_batch, done_batch
