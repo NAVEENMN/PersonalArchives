@@ -1,5 +1,7 @@
-import gym
+from defs import *
 from models import *
+from utils import *
+import gym
 import numpy as np
 import tensorflow as tf
 
