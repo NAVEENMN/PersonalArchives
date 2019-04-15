@@ -119,9 +119,10 @@ class game():
         return running_step
 
 def main():
-    config = tf.ConfigProto()
-    config.gpu_options.per_process_gpu_memory_fraction = 0.3
-    sess = tf.Session(config=config)
+    #config = tf.ConfigProto()
+    #config.gpu_options.per_process_gpu_memory_fraction = 0.3
+    #sess = tf.Session(config=config)
+    sess = tf.Session()
     gm = game(sess)
     global_step = 0
     for _ in range(0, 10):
