@@ -93,13 +93,15 @@ class game():
         running_step = global_step
         st = np.asarray(self.env.reset())
         st = np.reshape(st, ST_SHAPE)
+        st = pre_process(st)
         st_memory = ReplayBuffer(MAX_EP_STEP+1)
         while not done:
             self.env.render()
             at = self.net.get_pi_sample(st)
-            print("step {}, at {}", running_step, at)
+            print("step {}, at {}".format(running_step, at))
             st1, r, done, info = self.env.step(at[0])
             st1 = np.reshape(st1, ST_SHAPE)
+            st1 = pre_process(st1)
             at = np.reshape(at, AT_SHAPE)
             tr = (st, at, r, st1, done)
             st_memory.add(tr)
@@ -117,7 +119,9 @@ class game():
         return running_step
 
 def main():
-    sess = tf.Session()
+    config = tf.ConfigProto()
+    config.gpu_options.per_process_gpu_memory_fraction = 0.3
+    sess = tf.Session(config=config)
     gm = game(sess)
     global_step = 0
     for _ in range(0, 10):

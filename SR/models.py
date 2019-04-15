@@ -91,8 +91,8 @@ def tensorboard_summary(data):
     st_recon = data["reconstructed_image"]
     #sr_feature_recon = data["sr_feature"]
     with tf.name_scope("summary/images"):
-        source_image = st * 255.0 
-        recon_image = st_recon * 255.0
+        source_image = (st * 127.5) + 1
+        recon_image = (st_recon * 127.5) + 1
         #sr_feature_recon = sr_feature_recon * 255.0
         image_to_tb = tf.concat([source_image, recon_image], axis=1)
         #image_to_tb = tf.concat([image_to_tb, sr_feature_recon], axis=1)

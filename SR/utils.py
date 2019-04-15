@@ -4,12 +4,13 @@ from collections import deque
 import random
 #import cv2
 
-def pre_process(state, vec_st, net):
+def pre_process(state):
     state = np.asarray(state)
     #state = cv2.resize(state, (0, 0), fx=RESIZE, fy=RESIZE)
-    state = (state / 255.0)
+    #state = (state / 255.0)
     #latent = net.get_state_latent(state)
-    return state, vec_st
+    state = (state / 127.5) - 1.0
+    return state
 
 class ReplayBuffer(object):
     def __init__(self, buffer_size, random_seed=123):
