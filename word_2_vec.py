@@ -9,6 +9,7 @@ import random
 
 current_path = os.path.dirname(os.path.realpath(sys.argv[0]))
 log_path = os.path.join(current_path, 'log')
+model_path =  os.path.join(current_path, 'saved_model')
 
 data_index = 0
 
@@ -69,7 +70,7 @@ def generate_batch(batch_size, num_skips, skip_window, data):
       data_index = 0
     buffer.extend(data[data_index:data_index + span])
     data_index += span
-    for i in range(batch_size / num_skips):
+    for i in range(int(batch_size / num_skips)):
       context_words = [w for w in range(span) if w != skip_window]
       words_to_use = random.sample(context_words, num_skips)
       for j, context_word in enumerate(words_to_use):
@@ -131,7 +132,7 @@ class word_to_vec():
 
     def cosine_similarity(self, valid_dataset):
         with tf.name_scope('cosine_sim'):
-            norm = tf.sqrt(tf.reduce_sum(tf.square(self.embeddings), 1, keepdims=True))
+            norm = tf.sqrt(tf.reduce_sum(tf.square(self.embeddings), 1, keep_dims=True))
             normalized_embeddings = self.embeddings / norm
             valid_embeddings = tf.nn.embedding_lookup(normalized_embeddings, valid_dataset)
             similarity = tf.matmul(valid_embeddings, normalized_embeddings, transpose_b=True)
@@ -152,7 +153,7 @@ class word_to_vec():
 
 def main():
 
-    vocabulary = read_data("/var/folders/_9/1tzxzvg90bvgspt5y625xtq80000gn/T/text8.zip")
+    vocabulary = read_data("C:/Users/Naveen/AppData/Local/temp/text8.zip")
 
     graph = tf.Graph()
     with tf.Session(graph=graph) as sess:
@@ -173,9 +174,9 @@ def main():
             print(batch[i], reverse_dictionary[batch[i]], '->', labels[i, 0], reverse_dictionary[labels[i, 0]])
         '''
 
-        num_steps = 10
+        num_steps = 30000
         average_loss = 0
-        for step in xrange(num_steps):
+        for step in range(num_steps):
             batch_inputs, batch_labels = generate_batch(batch_size, num_skips, skip_window, data)
             loss, summary = wvec.train_batch(batch_inputs, batch_labels)
             average_loss += loss
@@ -189,10 +190,10 @@ def main():
             writer.add_summary(summary, step)
 
         with open(log_path + '/metadata.tsv', 'w') as f:
-            for i in xrange(vocabulary_size):
+            for i in range(vocabulary_size):
                 f.write(reverse_dictionary[i] + '\n')
 
-        saver.save(sess, os.path.join(log_path, 'model.ckpt'))
+        saver.save(sess, os.path.join(model_path, 'model.ckpt'))
 
     writer.close()
 
