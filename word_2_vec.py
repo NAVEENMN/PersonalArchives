@@ -153,7 +153,8 @@ class word_to_vec():
 
 def main():
 
-    vocabulary = read_data("C:/Users/Naveen/AppData/Local/temp/text8.zip")
+    # /var/folders/_9/1tzxzvg90bvgspt5y625xtq80000gn/T/text8.zip
+    vocabulary = read_data("/Users/naveenmysore/Documents/temp_doc/gameofthrones.zip")
 
     graph = tf.Graph()
     with tf.Session(graph=graph) as sess:
@@ -165,14 +166,14 @@ def main():
 
         data, count, dictionary, reverse_dictionary = build_dataset(vocabulary, vocabulary_size)
         del vocabulary
-        '''
+
         # testing data
         print('Most common words (+UNK)', count[:5])
         print('Sample data', data[:10], [reverse_dictionary[i] for i in data[:10]])
         batch, labels = generate_batch(batch_size=8, num_skips=2, skip_window=1, data=data)
         for i in range(8):
             print(batch[i], reverse_dictionary[batch[i]], '->', labels[i, 0], reverse_dictionary[labels[i, 0]])
-        '''
+
 
         num_steps = 30000
         average_loss = 0
