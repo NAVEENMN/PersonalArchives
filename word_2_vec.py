@@ -10,10 +10,11 @@ import random
 current_path = os.path.dirname(os.path.realpath(sys.argv[0]))
 log_path = os.path.join(current_path, 'log')
 model_path =  os.path.join(current_path, 'saved_model')
+data_source = os.path.join(current_path, 'gameofthrones.zip')
 
 data_index = 0
 
-vocabulary_size = 50000
+vocabulary_size = 24308
 batch_size = 128
 skip_window = 1
 num_skips = 2
@@ -122,6 +123,7 @@ class word_to_vec():
 
             with tf.name_scope('optimizer'):
                 opt = tf.train.GradientDescentOptimizer(1.0)
+                #opt = tf.train.AdamOptimizer(0.01)
                 self.train_step = opt.minimize(self.loss)
 
             # building summaries
@@ -153,7 +155,7 @@ class word_to_vec():
 
 def main():
 
-    vocabulary = read_data("C:/Users/Naveen/AppData/Local/temp/text8.zip")
+    vocabulary = read_data(data_source)
 
     graph = tf.Graph()
     with tf.Session(graph=graph) as sess:
@@ -164,17 +166,17 @@ def main():
         tf.global_variables_initializer().run()  # init the graph
 
         data, count, dictionary, reverse_dictionary = build_dataset(vocabulary, vocabulary_size)
+        print("total", len(count))
         del vocabulary
-        '''
+        
         # testing data
         print('Most common words (+UNK)', count[:5])
         print('Sample data', data[:10], [reverse_dictionary[i] for i in data[:10]])
         batch, labels = generate_batch(batch_size=8, num_skips=2, skip_window=1, data=data)
         for i in range(8):
             print(batch[i], reverse_dictionary[batch[i]], '->', labels[i, 0], reverse_dictionary[labels[i, 0]])
-        '''
-
-        num_steps = 30000
+        
+        num_steps = 100000
         average_loss = 0
         for step in range(num_steps):
             batch_inputs, batch_labels = generate_batch(batch_size, num_skips, skip_window, data)
