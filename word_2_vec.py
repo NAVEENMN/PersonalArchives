@@ -10,7 +10,7 @@ import random
 current_path = os.path.dirname(os.path.realpath(sys.argv[0]))
 log_path = os.path.join(current_path, 'log')
 model_path =  os.path.join(current_path, 'saved_model')
-data_source = os.path.join(current_path, 'gameofthrones.zip')
+data_source = os.path.join(current_path+"/data/compressed", 'gameofthrones.zip')
 
 data_index = 0
 
@@ -35,9 +35,16 @@ def build_dataset(words, n_words):
     # most_comman orders based on number of occurances and picks n_words words from this
     count.extend(collections.Counter(words).most_common(n_words - 1))
     dictionary = {}
+    # word probs will be sorted by their ids
+    word_probablities = []
     # word and is mapping
-    for word, _ in count:
+    for word, num_oc in count:
         dictionary[word] = len(dictionary)
+        probablity = float(num_oc)/float(vocabulary_size)
+        if probablity < 0:
+            probablity = float(0.0)
+        word_probablities.append(float(probablity))
+
     data = []
     unk_count = 0
 
@@ -49,7 +56,8 @@ def build_dataset(words, n_words):
         data.append(index)
     count[0][1] = unk_count
     reversed_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
-    return data, count, dictionary, reversed_dictionary
+
+    return data, count, dictionary, reversed_dictionary, word_probablities
 
 
 def generate_batch(batch_size, num_skips, skip_window, data):
@@ -88,10 +96,11 @@ def generate_batch(batch_size, num_skips, skip_window, data):
     return batch, labels
 
 class word_to_vec():
-    def __init__(self, graph, sess, name):
+    def __init__(self, graph, sess, word_probablities, name):
         self.name = name
         self.sess = sess
         self.graph = graph
+        self.word_prob = word_probablities
 
         with self.graph.as_default():
             # Input data
@@ -101,16 +110,18 @@ class word_to_vec():
                 self.valid_dataset = tf.placeholder(tf.int32, shape=[None], name=self.name+"validate")
 
             with tf.name_scope('embeddings'):
-                self.embeddings = tf.Variable(tf.random_uniform(embeddings_shape, -1.0, 1.0))
+                self.embeddings = tf.Variable(tf.random_uniform(embeddings_shape, -1.0, 1.0), name="word_embeddings")
 
             self.embed = tf.nn.embedding_lookup(self.embeddings, self.input)
 
             with tf.name_scope('weights'):
                 dev = 1.0 / math.sqrt(embedding_size)
-                self.nce_weights = tf.Variable(tf.truncated_normal(embeddings_shape, stddev=dev))
+                self.nce_weights = tf.Variable(tf.truncated_normal(embeddings_shape, stddev=dev), name="word_weights")
 
             with tf.name_scope('biases'):
-                self.nce_biases = tf.Variable(tf.zeros([vocabulary_size]))
+                self.nce_biases = tf.Variable(tf.zeros([vocabulary_size]), name="word_biases")
+
+            self.labels_matrix = tf.reshape(tf.cast(self.target, dtype=tf.int64), [batch_size, 1])
 
             with tf.name_scope('loss'):
                 loss = tf.nn.nce_loss(weights=self.nce_weights,
@@ -120,6 +131,19 @@ class word_to_vec():
                                       num_sampled=num_sampled,
                                       num_classes=vocabulary_size)
                 self.loss = tf.reduce_mean(loss)
+
+            # Negative sampling.
+            self.sampled_ids, _, _ = (tf.nn.fixed_unigram_candidate_sampler(
+                true_classes=self.labels_matrix,
+                num_true=1,
+                num_sampled=2,
+                unique=True,
+                unigrams=self.word_prob,
+                range_max=vocabulary_size))
+
+            #true_w = tf.nn.embedding_lookup(self.nce_weights, self.target)
+            #true_b = tf.nn.embedding_lookup(sm_b, labels)
+
 
             with tf.name_scope('optimizer'):
                 opt = tf.train.GradientDescentOptimizer(1.0)
@@ -146,11 +170,14 @@ class word_to_vec():
         feed_dict = {self.input: np.asarray([word_id])}
         return self.sess.run(self.normalized_embeddings, feed_dict=feed_dict)
 
-    def train_batch(self, batch_inputs, batch_labels):
+    def train_batch(self, batch_inputs, batch_labels, word_probablities):
         feed_dict = {self.input: batch_inputs, self.target: batch_labels}
         run_metadata = tf.RunMetadata()
         ops = [self.train_step, self.loss, self.merged]
         _, loss_val, summary = self.sess.run(ops, feed_dict=feed_dict, run_metadata=run_metadata)
+        print(self.sess.run(self.sampled_ids, feed_dict=feed_dict))
+        variables_names = [v.name for v in tf.trainable_variables()]
+        print(variables_names)
         return loss_val, summary
 
 def main():
@@ -160,14 +187,14 @@ def main():
     graph = tf.Graph()
     with tf.Session(graph=graph) as sess:
 
-        wvec = word_to_vec(graph, sess, "word_2_vec_")
+        data, count, dictionary, reverse_dictionary, word_probablities = build_dataset(vocabulary, vocabulary_size)
+        print("total", len(count))
+        del vocabulary
+
+        wvec = word_to_vec(graph, sess, word_probablities, "word_2_vec_")
         writer = tf.summary.FileWriter(log_path, sess.graph)
         saver = tf.train.Saver()
         tf.global_variables_initializer().run()  # init the graph
-
-        data, count, dictionary, reverse_dictionary = build_dataset(vocabulary, vocabulary_size)
-        print("total", len(count))
-        del vocabulary
 
         # testing data
         print('Most common words (+UNK)', count[:5])
@@ -180,7 +207,7 @@ def main():
         average_loss = 0
         for step in range(num_steps):
             batch_inputs, batch_labels = generate_batch(batch_size, num_skips, skip_window, data)
-            loss, summary = wvec.train_batch(batch_inputs, batch_labels)
+            loss, summary = wvec.train_batch(batch_inputs, batch_labels, word_probablities)
             average_loss += loss
 
             if step % 2000 == 0:
