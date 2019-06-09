@@ -141,9 +141,16 @@ class word_to_vec():
                 unigrams=self.word_prob,
                 range_max=vocabulary_size))
 
-            #true_w = tf.nn.embedding_lookup(self.nce_weights, self.target)
-            #true_b = tf.nn.embedding_lookup(sm_b, labels)
+            true_w = tf.nn.embedding_lookup(self.nce_weights, self.target)
+            true_b = tf.nn.embedding_lookup(self.nce_biases, self.target)
+            sampled_w = tf.nn.embedding_lookup(self.nce_weights, self.target)
+            sampled_b = tf.nn.embedding_lookup(self.nce_biases, self.target)
 
+            true_logits = tf.reduce_sum(tf.multiply(self.embed, true_w), 1) + true_b
+
+            sampled_b_vec = tf.reshape(sampled_b, [num_sampled])
+            # distance between true words and random words
+            sampled_logits = tf.matmul(self.embed, sampled_w,transpose_b=True) + sampled_b_vec
 
             with tf.name_scope('optimizer'):
                 opt = tf.train.GradientDescentOptimizer(1.0)
