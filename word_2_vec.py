@@ -10,7 +10,7 @@ import random
 current_path = os.path.dirname(os.path.realpath(sys.argv[0]))
 log_path = os.path.join(current_path, 'log')
 model_path =  os.path.join(current_path, 'saved_model')
-data_source = os.path.join(current_path+"/data/compressed", 'gameofthrones.zip')
+data_source = os.path.join(current_path, 'gameofthrones.zip')
 
 data_index = 0
 
@@ -21,6 +21,7 @@ num_skips = 2
 num_sampled = 64
 embedding_size = 128
 embeddings_shape = [vocabulary_size, embedding_size]
+rand_sampled = 2
 
 # Read the data into a list of strings.
 def read_data(filename):
@@ -136,26 +137,28 @@ class word_to_vec():
             self.sampled_ids, _, _ = (tf.nn.fixed_unigram_candidate_sampler(
                 true_classes=self.labels_matrix,
                 num_true=1,
-                num_sampled=2,
+                num_sampled=rand_sampled,
                 unique=True,
                 unigrams=self.word_prob,
                 range_max=vocabulary_size))
 
             true_w = tf.nn.embedding_lookup(self.nce_weights, self.target)
             true_b = tf.nn.embedding_lookup(self.nce_biases, self.target)
-            sampled_w = tf.nn.embedding_lookup(self.nce_weights, self.target)
-            sampled_b = tf.nn.embedding_lookup(self.nce_biases, self.target)
+            sampled_w = tf.nn.embedding_lookup(self.nce_weights, self.sampled_ids)
+            sampled_b = tf.nn.embedding_lookup(self.nce_biases, self.sampled_ids)
 
             true_logits = tf.reduce_sum(tf.multiply(self.embed, true_w), 1) + true_b
 
-            sampled_b_vec = tf.reshape(sampled_b, [num_sampled])
+            sampled_b_vec = tf.reshape(sampled_b, [rand_sampled])
             # distance between true words and random words
             sampled_logits = tf.matmul(self.embed, sampled_w,transpose_b=True) + sampled_b_vec
 
+            self.nce_loss = self.nce_loss(true_logits, sampled_logits)
+            
             with tf.name_scope('optimizer'):
                 opt = tf.train.GradientDescentOptimizer(1.0)
                 #opt = tf.train.AdamOptimizer(0.01)
-                self.train_step = opt.minimize(self.loss)
+                self.train_step = opt.minimize(self.nce_loss)
 
             # building summaries
             tf.summary.scalar('loss', self.loss)
