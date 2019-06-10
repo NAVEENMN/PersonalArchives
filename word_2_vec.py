@@ -10,18 +10,18 @@ import random
 current_path = os.path.dirname(os.path.realpath(sys.argv[0]))
 log_path = os.path.join(current_path, 'log')
 model_path =  os.path.join(current_path, 'saved_model')
-data_source = os.path.join(current_path+"/data/compressed", 'gameofthrones.zip')
+data_source = os.path.join(current_path+"/data/", 'tweets.zip')
 
 data_index = 0
 
-vocabulary_size = 24308
+vocabulary_size = 8634
 batch_size = 128
 skip_window = 1
 num_skips = 2
 num_sampled = 64
-embedding_size = 128
+embedding_size = 32
 embeddings_shape = [vocabulary_size, embedding_size]
-rand_sampled = 2
+rand_sampled = 4
 
 # Read the data into a list of strings.
 def read_data(filename):
@@ -42,8 +42,6 @@ def build_dataset(words, n_words):
     for word, num_oc in count:
         dictionary[word] = len(dictionary)
         probablity = float(num_oc)/float(vocabulary_size)
-        if probablity < 0:
-            probablity = float(0.0)
         word_probablities.append(float(probablity))
 
     data = []
@@ -111,7 +109,8 @@ class word_to_vec():
                 self.valid_dataset = tf.placeholder(tf.int32, shape=[None], name=self.name+"validate")
 
             with tf.name_scope('embeddings'):
-                self.embeddings = tf.Variable(tf.random_uniform(embeddings_shape, -1.0, 1.0), name="word_embeddings")
+                init_width = 0.5 / embedding_size
+                self.embeddings = tf.Variable(tf.random_uniform(embeddings_shape, -init_width, init_width), name="word_embeddings")
 
             self.embed = tf.nn.embedding_lookup(self.embeddings, self.input)
 
@@ -156,12 +155,12 @@ class word_to_vec():
             self.nceloss = self.nce_loss(true_logits, sampled_logits)
 
             with tf.name_scope('optimizer'):
-                opt = tf.train.GradientDescentOptimizer(1.0)
-                #opt = tf.train.AdamOptimizer(0.01)
+                opt = tf.train.GradientDescentOptimizer(0.1)
+                #opt = tf.train.AdamOptimizer(0.1)
                 self.train_step = opt.minimize(self.nceloss)
 
             # building summaries
-            tf.summary.scalar('loss', self.loss)
+            tf.summary.scalar('loss', self.nceloss)
             self.merged = tf.summary.merge_all()
 
             self.cos_sim, self.normalized_embeddings = self.cosine_similarity(self.valid_dataset)
@@ -198,7 +197,7 @@ class word_to_vec():
     def train_batch(self, batch_inputs, batch_labels, word_probablities):
         feed_dict = {self.input: batch_inputs, self.target: batch_labels}
         run_metadata = tf.RunMetadata()
-        ops = [self.train_step, self.loss, self.merged]
+        ops = [self.train_step, self.nceloss, self.merged]
         _, loss_val, summary = self.sess.run(ops, feed_dict=feed_dict, run_metadata=run_metadata)
         return loss_val, summary
 
@@ -225,7 +224,7 @@ def main():
         for i in range(8):
             print(batch[i], reverse_dictionary[batch[i]], '->', labels[i, 0], reverse_dictionary[labels[i, 0]])
 
-        num_steps = 30000
+        num_steps = 100000
         average_loss = 0
         for step in range(num_steps):
             batch_inputs, batch_labels = generate_batch(batch_size, num_skips, skip_window, data)
