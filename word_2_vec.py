@@ -19,7 +19,7 @@ batch_size = 128
 skip_window = 1
 num_skips = 2
 num_sampled = 64
-embedding_size = 128
+embedding_size = 64
 embeddings_shape = [vocabulary_size, embedding_size]
 rand_sampled = 2
 
