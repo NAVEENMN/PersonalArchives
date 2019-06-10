@@ -6,15 +6,17 @@ import tensorflow as tf
 import numpy as np
 import zipfile
 import random
+from gensim import corpora
+from gensim.parsing import preprocessing
 
 current_path = os.path.dirname(os.path.realpath(sys.argv[0]))
 log_path = os.path.join(current_path, 'log')
-model_path =  os.path.join(current_path, 'saved_model')
-data_source = os.path.join(current_path+"/data/", 'tweets.zip')
+model_path = os.path.join(current_path, 'saved_model')
+data_source = os.path.join(current_path+"/data/", 'compressed')
 
 data_index = 0
 
-vocabulary_size = 8634
+vocabulary_size = 24444
 batch_size = 128
 skip_window = 1
 num_skips = 2
@@ -24,40 +26,32 @@ embeddings_shape = [vocabulary_size, embedding_size]
 rand_sampled = 4
 
 # Read the data into a list of strings.
-def read_data(filename):
-    """Extract the first file enclosed in a zip file as a list of words."""
-    with zipfile.ZipFile(filename) as f:
-        data = tf.compat.as_str(f.read(f.namelist()[0])).split()
-    return data
+def read_data(data_source_path):
+    corpus = []
+    for filename in os.listdir(data_source_path):
+        if filename.endswith(".zip"):
+            filename = os.path.join(data_source_path, filename)
+            """Extract the first file enclosed in a zip file as a list of words."""
+            with zipfile.ZipFile(filename) as f:
+                data = preprocessing.remove_stopwords(f.read(f.namelist()[0]))
+                data = f.read(f.namelist()[0])
+                data = tf.compat.as_str(data).split()
+                #data = preprocessing(data)
+                corpus.append(data)
+    return corpus
 
-def build_dataset(words, n_words):
+def build_dataset(raw_data, n_words):
     """Process raw inputs into a dataset."""
-    count = [['UNK', -1]]
-    # most_comman orders based on number of occurances and picks n_words words from this
-    count.extend(collections.Counter(words).most_common(n_words - 1))
-    dictionary = {}
-    # word probs will be sorted by their ids
-    word_probablities = []
-    # word and is mapping
-    for word, num_oc in count:
-        dictionary[word] = len(dictionary)
-        probablity = float(num_oc)/float(vocabulary_size)
-        word_probablities.append(float(probablity))
-
-    data = []
-    unk_count = 0
-
-    # referring to original data
-    for word in words:
-        index = dictionary.get(word, 0)
-        if index == 0:  # dictionary['UNK']
-            unk_count += 1
-        data.append(index)
-    count[0][1] = unk_count
+    corp_dict = corpora.Dictionary(raw_data)
+    dictionary = corp_dict.token2id
     reversed_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
-
-    return data, count, dictionary, reversed_dictionary, word_probablities
-
+    all_words = []
+    for doc in raw_data:
+        all_words.extend(doc)
+    data = [dictionary[word] for word in all_words]
+    word_probablities = [wr[1] for wr in corp_dict.doc2bow(all_words)]
+    print("size", len(dictionary))
+    return data, dictionary, reversed_dictionary, word_probablities
 
 def generate_batch(batch_size, num_skips, skip_window, data):
     global data_index
@@ -208,8 +202,8 @@ def main():
     graph = tf.Graph()
     with tf.Session(graph=graph) as sess:
 
-        data, count, dictionary, reverse_dictionary, word_probablities = build_dataset(vocabulary, vocabulary_size)
-        print("total", len(count))
+        data, dictionary, reverse_dictionary, word_probablities = build_dataset(vocabulary, vocabulary_size)
+
         del vocabulary
 
         wvec = word_to_vec(graph, sess, word_probablities, "word_2_vec_")
@@ -218,7 +212,6 @@ def main():
         tf.global_variables_initializer().run()  # init the graph
 
         # testing data
-        print('Most common words (+UNK)', count[:5])
         print('Sample data', data[:10], [reverse_dictionary[i] for i in data[:10]])
         batch, labels = generate_batch(batch_size=8, num_skips=2, skip_window=1, data=data)
         for i in range(8):
