@@ -21,6 +21,7 @@ num_skips = 2
 num_sampled = 64
 embedding_size = 128
 embeddings_shape = [vocabulary_size, embedding_size]
+rand_sampled = 2
 
 # Read the data into a list of strings.
 def read_data(filename):
@@ -136,32 +137,49 @@ class word_to_vec():
             self.sampled_ids, _, _ = (tf.nn.fixed_unigram_candidate_sampler(
                 true_classes=self.labels_matrix,
                 num_true=1,
-                num_sampled=2,
+                num_sampled=rand_sampled,
                 unique=True,
                 unigrams=self.word_prob,
                 range_max=vocabulary_size))
 
             true_w = tf.nn.embedding_lookup(self.nce_weights, self.target)
             true_b = tf.nn.embedding_lookup(self.nce_biases, self.target)
-            sampled_w = tf.nn.embedding_lookup(self.nce_weights, self.target)
-            sampled_b = tf.nn.embedding_lookup(self.nce_biases, self.target)
+            sampled_w = tf.nn.embedding_lookup(self.nce_weights, self.sampled_ids)
+            sampled_b = tf.nn.embedding_lookup(self.nce_biases, self.sampled_ids)
 
             true_logits = tf.reduce_sum(tf.multiply(self.embed, true_w), 1) + true_b
 
-            sampled_b_vec = tf.reshape(sampled_b, [num_sampled])
+            sampled_b_vec = tf.reshape(sampled_b, [rand_sampled])
             # distance between true words and random words
             sampled_logits = tf.matmul(self.embed, sampled_w,transpose_b=True) + sampled_b_vec
+
+            self.nceloss = self.nce_loss(true_logits, sampled_logits)
 
             with tf.name_scope('optimizer'):
                 opt = tf.train.GradientDescentOptimizer(1.0)
                 #opt = tf.train.AdamOptimizer(0.01)
-                self.train_step = opt.minimize(self.loss)
+                self.train_step = opt.minimize(self.nceloss)
 
             # building summaries
             tf.summary.scalar('loss', self.loss)
             self.merged = tf.summary.merge_all()
 
             self.cos_sim, self.normalized_embeddings = self.cosine_similarity(self.valid_dataset)
+
+    def nce_loss(self, true_logits, sampled_logits):
+        """Build the graph for the NCE loss."""
+
+        # cross-entropy(logits, labels)
+        true_xent = tf.nn.sigmoid_cross_entropy_with_logits(
+            labels=tf.ones_like(true_logits), logits=true_logits)
+        sampled_xent = tf.nn.sigmoid_cross_entropy_with_logits(
+            labels=tf.zeros_like(sampled_logits), logits=sampled_logits)
+
+        # NCE-loss is the sum of the true and noise (sampled words)
+        # contributions, averaged over the batch.
+        nce_loss_tensor = (tf.reduce_sum(true_xent) +
+                           tf.reduce_sum(sampled_xent)) / batch_size
+        return nce_loss_tensor
 
     def cosine_similarity(self, valid_dataset):
         with tf.name_scope('cosine_sim'):
@@ -182,9 +200,6 @@ class word_to_vec():
         run_metadata = tf.RunMetadata()
         ops = [self.train_step, self.loss, self.merged]
         _, loss_val, summary = self.sess.run(ops, feed_dict=feed_dict, run_metadata=run_metadata)
-        print(self.sess.run(self.sampled_ids, feed_dict=feed_dict))
-        variables_names = [v.name for v in tf.trainable_variables()]
-        print(variables_names)
         return loss_val, summary
 
 def main():
