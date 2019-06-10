@@ -10,7 +10,7 @@ import random
 current_path = os.path.dirname(os.path.realpath(sys.argv[0]))
 log_path = os.path.join(current_path, 'log')
 model_path =  os.path.join(current_path, 'saved_model')
-data_source = os.path.join(current_path, 'gameofthrones.zip')
+data_source = os.path.join(current_path+"/data/compressed", 'gameofthrones.zip')
 
 data_index = 0
 
@@ -153,18 +153,33 @@ class word_to_vec():
             # distance between true words and random words
             sampled_logits = tf.matmul(self.embed, sampled_w,transpose_b=True) + sampled_b_vec
 
-            self.nce_loss = self.nce_loss(true_logits, sampled_logits)
-            
+            self.nceloss = self.nce_loss(true_logits, sampled_logits)
+
             with tf.name_scope('optimizer'):
                 opt = tf.train.GradientDescentOptimizer(1.0)
                 #opt = tf.train.AdamOptimizer(0.01)
-                self.train_step = opt.minimize(self.nce_loss)
+                self.train_step = opt.minimize(self.nceloss)
 
             # building summaries
             tf.summary.scalar('loss', self.loss)
             self.merged = tf.summary.merge_all()
 
             self.cos_sim, self.normalized_embeddings = self.cosine_similarity(self.valid_dataset)
+
+    def nce_loss(self, true_logits, sampled_logits):
+        """Build the graph for the NCE loss."""
+
+        # cross-entropy(logits, labels)
+        true_xent = tf.nn.sigmoid_cross_entropy_with_logits(
+            labels=tf.ones_like(true_logits), logits=true_logits)
+        sampled_xent = tf.nn.sigmoid_cross_entropy_with_logits(
+            labels=tf.zeros_like(sampled_logits), logits=sampled_logits)
+
+        # NCE-loss is the sum of the true and noise (sampled words)
+        # contributions, averaged over the batch.
+        nce_loss_tensor = (tf.reduce_sum(true_xent) +
+                           tf.reduce_sum(sampled_xent)) / batch_size
+        return nce_loss_tensor
 
     def cosine_similarity(self, valid_dataset):
         with tf.name_scope('cosine_sim'):
@@ -185,9 +200,6 @@ class word_to_vec():
         run_metadata = tf.RunMetadata()
         ops = [self.train_step, self.loss, self.merged]
         _, loss_val, summary = self.sess.run(ops, feed_dict=feed_dict, run_metadata=run_metadata)
-        print(self.sess.run(self.sampled_ids, feed_dict=feed_dict))
-        variables_names = [v.name for v in tf.trainable_variables()]
-        print(variables_names)
         return loss_val, summary
 
 def main():
