@@ -1,0 +1,13 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    -  name: install Apache
+       apt: name=apache2 state=present
+    -  name: install PHP module for Apache
+       apt: name=libapache2-mod-php5 state=present
+    -  name: start Apache
+       service: name=apache2 state=running enabled=yes
+    -  name: install Hello World PHP script
+       
+   

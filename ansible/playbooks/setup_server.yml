@@ -1,0 +1,45 @@
+---
+- hosts: all
+  become: true
+  vars_files:
+    - ../vars/external_vars.yml
+  tasks:
+    - name: Create app directory
+      file:
+        path: ~/app
+        state: directory
+    - name: Create server directory
+      file:
+        path: ~/app/server
+        state: directory
+    - name: Create temporary build directory
+      file:
+        path: ~/app/temp
+        state: directory
+      register: tempdir
+    - name: Install python3
+      shell: apt install python3
+    - name: Check if Anaconda installer already exists
+      stat:
+        path: '{{ anaconda_downloaded_installer }}'
+      register: installer_already_downloaded
+    - name: Download Anaconda installer
+      when: not installer_already_downloaded.stat.exists
+      get_url:
+        url: https://repo.anaconda.com/archive/Anaconda3-2019.03-Linux-x86_64.sh
+        dest: ~/app/temp
+        checksum: '{{ anaconda_installer_checksum }}'
+        mode: '0755'
+    - name: Install anaconda
+      command: '{{ anaconda_downloaded_installer }} -b -p {{ anaconda_home_dir }}'
+      args:
+        creates: '{{ anaconda_home_dir }}'
+    - name: Make Anaconda the default Python for the current user
+      lineinfile:
+        path: '{{ ansible_env.HOME }}/.bashrc'
+        state: present
+        line: '{{ item }}'
+        insertbefore: BOF
+      with_items:
+        - 'export PATH=$ANACONDA_HOME/bin:$PATH'
+        - 'export ANACONDA_HOME={{ anaconda_home_dir }}'
