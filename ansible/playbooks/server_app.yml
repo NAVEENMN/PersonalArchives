@@ -1,10 +1,10 @@
 - debug:
     msg: Setting up server app
 - name: Install web py
-  shell: pip install web.py==0.40-dev1
+  shell: pip3 install web.py==0.40-dev1
 - name: Organizing app files
   shell: "cp -r ~/app/temp/checkout/server/* ~/app/server"
 - name: Starting the app server
-  shell: python3 app.py
+  shell: "nohup python3 ./app.py > output.log &"
   args:
     chdir: ~/app/server

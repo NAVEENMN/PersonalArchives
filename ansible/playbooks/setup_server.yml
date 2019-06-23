@@ -27,5 +27,7 @@
       git:
         repo: '{{ deploy_repo_url }}'
         dest: ~/app/temp/checkout
+    - name: Setting up database
+      include: ../playbooks/mongo_db.yml
     - name: Setting up Server app
       include: ../playbooks/server_app.yml
