@@ -9,7 +9,7 @@ terraform {
 }
 
 provider "aws"{
-    region = "us-east-1"
+    region = "us-west-1"
 }
 
 locals {
@@ -28,9 +28,10 @@ resource "aws_instance" "myvm"{
     tags = {
         Name = "${local.vm_name}"
     }
-    ami = "ami-026c8acd92718196b"
-    instance_type = "t2.micro"
+    ami = "ami-056ee704806822732"
+    instance_type = "t1.micro"
     key_name="mysterra_kv"
+    security_groups = ["default"] # make sure on aws under security group, ssh is made inbound for default
     provisioner "remote-exec"{
         inline=["touch test.dat"] # create a test.dat file on vm 
         connection {
