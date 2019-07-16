@@ -17,6 +17,12 @@ terraform show → will dump out the contents of tf.state file
 terraform destory —auto-approve → removes the instance.
 
 
+* workspace *
+terraform workspace new test --> its like git branch ( this creates and switched to new workspace )
+
+* plan *
+terraform plan -out plan.out --> this generates a plan and stores in plan.out
+terraform apply plan.out --> you can use this plan later.
 
 *project:*
 
@@ -35,4 +41,8 @@ directory terra
 
 * to create image : https://www.packer.io/intro/getting-started/build-image.html
 * aws availiblity zone is DATA CENTER
+
+* aws key_pairs are region specific
+* aws you can create a key pair ( like ssh-keygen )
+* or upload keypair
 
