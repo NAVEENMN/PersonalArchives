@@ -1,9 +1,10 @@
 - debug:
     msg: Setting up mongo database
+- name: start mongo service
+  shell: "service mongod start"
 - name: Checking mongo service
   shell: "mongo --eval 'db.runCommand({ connectionStatus: 1 })'"
   register: service_status
 - debug:
     var: service_status.stdout
-- name: Installing pymongo
-  shell: pip3 install pymongo
+
