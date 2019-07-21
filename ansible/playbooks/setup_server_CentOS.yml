@@ -1,0 +1,44 @@
+- name: Create app directory
+  file:
+    path: ~/app
+    state: directory
+- name: Create server directory
+  file:
+    path: ~/app/server
+    state: directory
+- name: Create temporary build directory
+  file:
+    path: ~/app/temp
+    state: directory
+  register: tempdir
+- name: Install SCL utility
+  shell: yum -y install centos-release-scl
+- name: Install python3
+  shell: yum -y install rh-python36
+- name: Setup shell for python3
+  shell: scl enable rh-python36 bash
+- name: add EPEL repo
+  shell: yum -y install epel-release
+- name: Install python3-pip
+  shell: yum -y install python34-pip
+- name: Install git
+  shell: yum -y install git
+- name: Install pymongo
+  shell: python3 -m pip
+- name: Setting up database
+  include: ../playbooks/mongo_db.yml
+- name: setup mongo client
+  copy:
+    dest: /etc/yum.repos.d/mongodb-org-4.0.repo
+    content: |
+      name=MongoDB Repository
+      baseurl=https://repo.mongodb.org/yum/redhat/$releasever/mongodb-org/4.0/x86_64/
+      gpgcheck=1
+      enabled=1
+      gpgkey=https://www.mongodb.org/static/pgp/server-4.0.asc
+- name: import public key for mongo shell
+  shell: rpm --import https://www.mongodb.org/static/pgp/server-4.0.asc
+- name: install mongo shell
+  shell: yum install -y mongodb-org-shell
+- name: Setting up Server app
+  include: ../playbooks/server_app.yml

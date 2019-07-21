@@ -1,9 +1,5 @@
 - debug:
     msg: Setting up mongo database
-- name: Update system
-  shell: apt update
-- name: Install mongo db
-  shell: apt install -y mongodb
 - name: Checking mongo service
   shell: "mongo --eval 'db.runCommand({ connectionStatus: 1 })'"
   register: service_status
