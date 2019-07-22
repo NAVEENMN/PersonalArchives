@@ -5,9 +5,11 @@
     repo: '{{ deploy_repo_url }}'
     dest: ~/acc/temp/checkout
 - name: Create bot app directory
-  shell "mkdir ~/botapp"
+  file:
+    path: "~/botapp"
+    state: directory
 - name: Organizing app files
-  shell: "cp -r ~/app/temp/checkout/server/* ~/botapp"
+  shell: "cp -r ~/acc/temp/checkout/server/* ~/botapp"
 - name: Create flask env
   shell: "touch ~/.flaskenv"
 - name: Adding app name to flask env
