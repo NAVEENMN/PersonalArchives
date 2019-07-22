@@ -15,10 +15,10 @@
 - name: Adding app name to flask env
   lineinfile:
     path: ~/.flaskenv
-    line: 'FLASK_APP=botapp.py'
-- name: Export variable
-  shell: export FLASK_APP=botapp.py
+    line: 'FLASK_APP=/root/botapp/botapp.py'
+- name: Export flask app
+  shell: export FLASK_APP=/root/botapp/botapp.py
 - name: Starting the app server
-  shell: "flask run --host=0.0.0.0 &"
+  shell: "flask run --host=0.0.0.0"
   args:
-    chdir: ~/botapp
+    chdir: /root/botapp
