@@ -1,12 +1,22 @@
 - debug:
     msg: Setting up server app
-- name: Install web py
-  shell: pip3 install web.py==0.40-dev1
+- name: Cloning the deploy repo
+  git:
+    repo: '{{ deploy_repo_url }}'
+    dest: ~/acc/temp/checkout
+- name: Create bot app directory
+  shell "mkdir ~/botapp"
 - name: Organizing app files
-  shell: "cp -r ~/app/temp/checkout/server/* ~/app/server"
+  shell: "cp -r ~/app/temp/checkout/server/* ~/botapp"
+- name: Create flask env
+  shell: "touch ~/.flaskenv"
+- name: Adding app name to flask env
+  lineinfile:
+    path: ~/.flaskenv
+    line: 'FLASK_APP=botapp.py'
 - name: Export variable
   shell: export FLASK_APP=botapp.py
 - name: Starting the app server
   shell: "flask run --host=0.0.0.0 &"
   args:
-    chdir: ~/app/server
+    chdir: ~/botapp
