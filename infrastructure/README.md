@@ -49,6 +49,11 @@ $ terraform --version
 Terraform v0.12.6
 ```
 
+You can also install it via brew
+```
+brew install terraform
+```
+
 ### Installing Ansible
 
 Install ansible via brew for mac
