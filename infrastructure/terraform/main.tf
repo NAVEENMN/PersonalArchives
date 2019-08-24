@@ -76,6 +76,13 @@ resource "aws_security_group" "My_VPC_Security_Group" {
     to_port     = 80
     protocol    = "tcp"
   }
+  # https
+  ingress {
+    cidr_blocks = "${var.ingressCIDRblock}"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+  }
   ingress {
     from_port = 0
     to_port = 0

@@ -3,6 +3,12 @@
     path: /home/ubuntu/main
     state: directory
 
+- name: Create temp directory
+  file:
+    path: /home/ubuntu/temp
+    mode: 777
+    state: directory
+
 - name: Update ubuntu
   shell: apt-get update
 
@@ -11,3 +17,8 @@
 
 - name: Install flask
   shell: 'pip3 install flask'
+
+- name: Clone the cortex repo
+  git:
+    repo: git clone '{{ cortex_repo_url }}'
+    dest: /home/ubuntu/temp
