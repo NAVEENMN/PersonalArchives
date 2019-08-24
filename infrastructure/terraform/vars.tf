@@ -42,6 +42,10 @@ variable "dnsHostNames" {
 variable "vpcCIDRblock" {
  default = "10.0.0.0/16"
 }
+variable "assignipv6AddressOnCreation" {
+ default = true
+}
+
 variable "subnetCIDRblock" {
         default = "10.0.1.0/24"
 }

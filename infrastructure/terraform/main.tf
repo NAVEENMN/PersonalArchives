@@ -9,6 +9,7 @@ resource "aws_vpc" "My_VPC" {
   instance_tenancy     = "${var.instanceTenancy}"
   enable_dns_support   = "${var.dnsSupport}"
   enable_dns_hostnames = "${var.dnsHostNames}"
+  assign_generated_ipv6_cidr_block = true
 } # end resource
 
 # Create the Internet Gateway
@@ -19,6 +20,17 @@ resource "aws_internet_gateway" "My_VPC_GW" {
 # Create the Route Table
 resource "aws_route_table" "My_VPC_route_table" {
   vpc_id = "${aws_vpc.My_VPC.id}"
+  
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = "${aws_internet_gateway.My_VPC_GW.id}"
+  }
+
+  route { 
+    ipv6_cidr_block = "::/0"
+    gateway_id = "${aws_internet_gateway.My_VPC_GW.id}"
+  }
+
 } # end resource
 
 # Create the Internet Access
@@ -31,9 +43,12 @@ resource "aws_route" "My_VPC_internet_access" {
 # create the Subnet
 resource "aws_subnet" "My_VPC_Subnet" {
   vpc_id                  = "${aws_vpc.My_VPC.id}"
-  cidr_block              = "${var.subnetCIDRblock}"
+  # cidr_block              = "${var.subnetCIDRblock}"
+  cidr_block              = "${cidrsubnet(aws_vpc.My_VPC.cidr_block, 4, 1)}"
   map_public_ip_on_launch = "${var.mapPublicIP}"
   availability_zone       = "${var.availabilityZone}"
+  ipv6_cidr_block = "${cidrsubnet(aws_vpc.My_VPC.ipv6_cidr_block, 8, 1)}"
+  assign_ipv6_address_on_creation = "${var.assignipv6AddressOnCreation}"
 } # end resource
 
 # Associate the Route Table with the Subnet
@@ -53,41 +68,25 @@ resource "aws_security_group" "My_VPC_Security_Group" {
     to_port     = 22
     protocol    = "tcp"
   }
-} # end resource
-
-# create VPC Network access control list
-resource "aws_network_acl" "My_VPC_Security_ACL" {
-  vpc_id = "${aws_vpc.My_VPC.id}"
-  subnet_ids = [ "${aws_subnet.My_VPC_Subnet.id}" ]
-# allow port 22
   ingress {
-    protocol   = "tcp"
-    rule_no    = 100
-    action     = "allow"
-    cidr_block = "${var.destinationCIDRblock}"
-    from_port  = 22
-    to_port    = 22
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    ipv6_cidr_blocks = ["::/0"]
   }
-# allow ingress ephemeral ports
-  ingress {
-    protocol   = "tcp"
-    rule_no    = 200
-    action     = "allow"
-    cidr_block = "${var.destinationCIDRblock}"
-    from_port  = 1024
-    to_port    = 65535
-  }
-# allow egress ephemeral ports
   egress {
-    protocol   = "tcp"
-    rule_no    = 100
-    action     = "allow"
-    cidr_block = "${var.destinationCIDRblock}"
-    from_port  = 1024
-    to_port    = 65535
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    ipv6_cidr_blocks = ["::/0"]
   }
 } # end resource
-
 
 # resources to deploy in this region
 resource "aws_instance" "myvm"{
