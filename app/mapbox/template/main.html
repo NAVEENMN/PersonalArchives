@@ -10,10 +10,29 @@
 body { margin:0; padding:0; }
 #map { position:absolute; top:0; bottom:0; width:100%; }
 </style>
+
+<style>
+#fly {
+display: block;
+position: relative;
+margin: 0px auto;
+width: 50%;
+height: 40px;
+padding: 10px;
+border: none;
+border-radius: 3px;
+font-size: 12px;
+text-align: center;
+color: #fff;
+background: #ee8a65;
+}
+</style>
+
 </head>
 <body>
- 
-<div id='map'></div>
+    <div id='map'></div>
+    <br/>
+    <button id='fly'>Fly</button>
 <script>
 mapboxgl.accessToken = 'pk.eyJ1IjoibXlzb3JuMSIsImEiOiIwODY0MDQ0ZTdiYTViYmU0ZTZiOGI4OTU5MjQxZGY1NCJ9.elqMFi4oQtFFjYXbW2Oxig';
 var map = new mapboxgl.Map({
@@ -22,6 +41,17 @@ zoom: 9,
 center: [137.9150899566626, 36.25956997955441],
 style: 'mapbox://styles/mapbox/satellite-v9'
 });
+
+document.getElementById('fly').addEventListener('click', function () {
+// Fly to a random location by offsetting the point -74.50, 40
+// by up to 5 degrees.
+map.flyTo({
+center: [
+-74.50 + (Math.random() - 0.5) * 10,
+40 + (Math.random() - 0.5) * 10]
+});
+});
+
 </script>
  
 </body>
