@@ -4,10 +4,10 @@
     state: directory
 
 - name: Update ubuntu
-  shell: sudo apt update
+  shell: apt-get update
 
-- name: Install python pip
-  shell: sudo apt install python3-pip
+- name: Install python3 pip
+  shell: echo y | sudo apt-get install python3-pip
 
 - name: Install flask
-  shell: 'pip install flask'
+  shell: 'pip3 install flask'

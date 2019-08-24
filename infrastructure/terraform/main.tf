@@ -62,10 +62,18 @@ resource "aws_security_group" "My_VPC_Security_Group" {
   vpc_id       = "${aws_vpc.My_VPC.id}"
   name         = "My VPC Security Group"
   description  = "My VPC Security Group"
+  # ssh
   ingress {
     cidr_blocks = "${var.ingressCIDRblock}"
     from_port   = 22
     to_port     = 22
+    protocol    = "tcp"
+  }
+  # http
+  ingress {
+    cidr_blocks = "${var.ingressCIDRblock}"
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
   }
   ingress {
