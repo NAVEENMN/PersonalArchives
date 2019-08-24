@@ -1,3 +1,1 @@
-[server]
-ubuntu@ec2-34-212-233-86.us-west-2.compute.amazonaws.com 
-ansible_private_key_file=~/.ssh/nmysore.pem
+ec2-instance ansible_host=54.218.117.195 ansible_user=ubuntu ansible_ssh_private_key_file=/Users/naveenmysore/.ssh/nmysore.pem

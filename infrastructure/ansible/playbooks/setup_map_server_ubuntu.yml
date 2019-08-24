@@ -1,0 +1,13 @@
+- name: Create main directory
+  file:
+    path: /home/ubuntu/main
+    state: directory
+
+- name: Update ubuntu
+  shell: sudo apt update
+
+- name: Install python pip
+  shell: sudo apt install python3-pip
+
+- name: Install flask
+  shell: 'pip install flask'
