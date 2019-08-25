@@ -6,7 +6,6 @@
 - name: Create temp directory
   file:
     path: /home/ubuntu/temp
-    mode: 777
     state: directory
 
 - name: Update ubuntu
@@ -18,7 +17,24 @@
 - name: Install flask
   shell: 'pip3 install flask'
 
+- name: Check if repo cloned
+  stat:
+    path: /home/ubuntu/temp/cortex
+  register: is_cloned
+
 - name: Clone the cortex repo
-  git:
-    repo: git clone '{{ cortex_repo_url }}'
-    dest: /home/ubuntu/temp
+  shell: git clone '{{ cortex_repo_url }}'
+  when: is_cloned.stat.exists == False
+  args:
+    chdir: /home/ubuntu/temp
+
+- name : Copy server files to main
+  shell: cp -r /home/ubuntu/temp/cortex/app /home/ubuntu/main
+
+- name: setup flask environment variable
+  shell: export FLASK_APP=/home/ubuntu/main/app/mapbox/app.py
+
+- name: Start map server
+  shell: sudo flask run --host=0.0.0.0 --port=80
+  args:
+    chdir: /home/ubuntu/main/app/mapbox
