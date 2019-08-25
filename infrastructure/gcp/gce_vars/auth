@@ -1,0 +1,5 @@
+---
+# Google Compute Engine authentication vars
+project: cortexinfra
+credentials_file: ~/.ssh/cortexinfra-42b66efcabf7.json
+auth_kind: serviceaccount

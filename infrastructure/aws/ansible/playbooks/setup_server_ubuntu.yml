@@ -1,0 +1,4 @@
+- name: Create main directory
+  file:
+    path: ~/main
+    state: directory
