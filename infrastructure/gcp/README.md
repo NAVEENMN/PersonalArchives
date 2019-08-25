@@ -18,10 +18,14 @@ sudo apt-get install -y build-essential git python-dev python-pip
 Install GCP module dependencies
 ```
 pip install googleauth requests
-
+```
 ## Run the playbook
 
 Playbook create_google_compute_instance.yml will deploy the instance and destroy_google_compute_instance.yml will destroy the instances.
 ```
 ansible-playbook -i host playbooks/create_gcp_compute_instance.yml
+```
+To destroy the resources
+```
+ansible-playbook -i host playbooks/destroy_gcp_compute_instance.yml
 ```
