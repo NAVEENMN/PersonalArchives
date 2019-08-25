@@ -25,6 +25,10 @@ Playbook create_google_compute_instance.yml will deploy the instance and destroy
 ```
 ansible-playbook -i host playbooks/create_gcp_compute_instance.yml
 ```
+You can ssh to the instance by running
+```
+gcloud compute ssh <instance_name>
+```
 To destroy the resources
 ```
 ansible-playbook -i host playbooks/destroy_gcp_compute_instance.yml
