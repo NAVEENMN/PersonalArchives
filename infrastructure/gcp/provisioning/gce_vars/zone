@@ -1,0 +1,5 @@
+---
+# Variables defined for zones and regions
+name_zonea: myinstance1
+zone: us-central1-a
+region: us-central1

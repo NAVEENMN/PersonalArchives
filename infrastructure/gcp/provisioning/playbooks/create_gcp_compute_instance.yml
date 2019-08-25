@@ -1,0 +1,48 @@
+---
+# deploy a compute instance on GCP
+# script borrowed from 
+# https://github.com/GoogleCloudPlatform/compute-video-demo-ansible/blob/master/gce-instances.yml
+- name: Create an instance
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - ../gce_vars/auth
+    - ../gce_vars/machines
+    - ../gce_vars/zone
+  tasks:
+    - name: Create an IP address for first instance
+      gcp_compute_address:
+        name: "{{ name_zonea }}-ip"
+        region: "{{ region }}"
+        project: "{{ project }}"
+        service_account_file: "{{ credentials_file }}"
+        auth_kind: "{{ auth_kind }}"
+      register: gcea_ip
+    - name: Bring up the first instance in the first zone.
+      gcp_compute_instance:
+        name: "{{ name_zonea }}"
+        machine_type: "{{ machine_type }}"
+        disks:
+          - auto_delete: true
+            boot: true
+            initialize_params:
+              source_image: "{{ image }}"
+        network_interfaces:
+          - access_configs:
+              - name: External NAT
+                nat_ip: "{{ gcea_ip }}"
+                type: ONE_TO_ONE_NAT
+        tags:
+          items:
+            - http-server
+            - https-server
+        zone: "{{ zone }}"
+        project: "{{ project }}"
+        service_account_file: "{{ credentials_file }}"
+        auth_kind: "{{ auth_kind }}"
+      register: gcea
+  post_tasks:
+    - name: Wait for SSH for instances in first zone
+      wait_for: delay=1 host={{ gcea_ip.address }} port=22 state=started timeout=30
+    - name: Save host data for first zone
+      add_host: hostname={{ gcea_ip.address }} groupname=gce_instances_ips
