@@ -1,4 +1,4 @@
-### Setting up Infrastructre and Provisioning on Google Cloud
+# Setting up Infrastructre and Provisioning on Google Cloud
 
 Setting up infrastructure is easier via ansible. But inorder to setup and provision we need to setup few things on our local system
 
