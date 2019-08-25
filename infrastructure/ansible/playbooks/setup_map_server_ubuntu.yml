@@ -31,8 +31,13 @@
 - name : Copy server files to main
   shell: cp -r /home/ubuntu/temp/cortex/app /home/ubuntu/main
 
-- name: setup flask environment variable
-  shell: export FLASK_APP=/home/ubuntu/main/app/mapbox/app.py
+- name: setup environment variables
+  shell: "{{ item }}"
+  loop:
+    - export FLASK_APP=/home/ubuntu/main/app/mapbox/app.py
+    - LC_ALL=C.UTF-8
+    - LANG=C.UTF-8
+
 
 - name: Start map server
   shell: sudo flask run --host=0.0.0.0 --port=80
