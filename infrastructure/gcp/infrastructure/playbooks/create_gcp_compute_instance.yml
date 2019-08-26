@@ -6,9 +6,9 @@
   hosts: localhost
   gather_facts: no
   vars_files:
-    - ../gce_vars/auth
-    - ../gce_vars/machines
-    - ../gce_vars/zone
+    - ../vars/auth
+    - ../vars/machines
+    - ../vars/zone
   tasks:
     - name: Create an IP address for first instance
       gcp_compute_address:
@@ -44,5 +44,9 @@
   post_tasks:
     - name: Wait for SSH for instances in first zone
       wait_for: delay=1 host={{ gcea_ip.address }} port=22 state=started timeout=30
+    - debug:
+        msg:
+        - "you can now login by running gcloud compute ssh {{ name_zonea }}"
+        - "Ip address of the instance: {{ gcea_ip.address }}"
     - name: Save host data for first zone
       add_host: hostname={{ gcea_ip.address }} groupname=gce_instances_ips

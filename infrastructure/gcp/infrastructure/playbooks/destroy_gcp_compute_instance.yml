@@ -3,9 +3,9 @@
   hosts: local
   gather_facts: False
   vars_files:
-    - ../gce_vars/auth
-    - ../gce_vars/machines
-    - ../gce_vars/zone
+    - ../vars/auth
+    - ../vars/machines
+    - ../vars/zone
   tasks:
     - name: Delete the first instance
       gcp_compute_instance:

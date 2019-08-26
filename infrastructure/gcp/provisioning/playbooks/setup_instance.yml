@@ -1,0 +1,14 @@
+---
+# Setup the system 
+- name: Create an instance
+  hosts: all
+  gather_facts: no
+  vars_files:
+    - ../gce_vars/auth
+    - ../gce_vars/zone
+  tasks:
+    - name: Get path of root directory
+      shell: pwd
+      register: root_dir
+    - debug: msg="{{ root_dir }}"
+
