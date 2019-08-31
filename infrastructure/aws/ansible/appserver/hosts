@@ -1,0 +1,2 @@
+[appserver]
+ec2-instance ansible_host=35.162.238.228 ansible_user=ubuntu ansible_ssh_private_key_file=/Users/naveenmysore/.ssh/nmysore.pem

@@ -1,0 +1,17 @@
+---
+- hosts: appserver
+  become: yes
+  gather_facts: true
+  vars:
+    home: /home/ubuntu
+    home_dir: /home/ubuntu/main
+    research_dir: /home/ubuntu/main/models/research
+    data_dir: /home/ubuntu/data
+    python_path: ":/home/ubuntu/main/models/research:/home/ubuntu/main/models/research/slim"
+  vars_files:
+    - vars/variables
+  environment:
+    PYTHONPATH: "{{ python_path}}"
+  tasks:
+    #- include_tasks: tasks/setup.yml
+    - include_tasks: tasks/object_detection_setup.yml

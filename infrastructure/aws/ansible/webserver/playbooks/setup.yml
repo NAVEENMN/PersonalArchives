@@ -1,0 +1,8 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: true
+  vars_files:
+    - ../vars/external_vars.yml
+  tasks:
+    - include_tasks: setup_map_server_{{ ansible_distribution  }}.yml

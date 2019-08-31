@@ -1,0 +1,45 @@
+- name: Create main directory
+  file:
+    path: /home/ubuntu/main
+    state: directory
+
+- name: Create temp directory
+  file:
+    path: /home/ubuntu/temp
+    state: directory
+
+- name: Update ubuntu
+  shell: apt-get update
+
+- name: Install python3 pip
+  shell: echo y | sudo apt-get install python3-pip
+
+- name: Install flask
+  shell: 'pip3 install flask'
+
+- name: Check if repo cloned
+  stat:
+    path: /home/ubuntu/temp/cortex
+  register: is_cloned
+
+- name: Clone the cortex repo
+  shell: git clone '{{ cortex_repo_url }}'
+  when: is_cloned.stat.exists == False
+  args:
+    chdir: /home/ubuntu/temp
+
+- name : Copy server files to main
+  shell: cp -r /home/ubuntu/temp/cortex/app /home/ubuntu/main
+
+- name: setup environment variables
+  shell: "{{ item }}"
+  loop:
+    - export FLASK_APP=/home/ubuntu/main/app/mapbox/app.py
+    - LC_ALL=C.UTF-8
+    - LANG=C.UTF-8
+
+
+- name: Start map server
+  shell: sudo flask run --host=0.0.0.0 --port=80
+  args:
+    chdir: /home/ubuntu/main/app/mapbox
