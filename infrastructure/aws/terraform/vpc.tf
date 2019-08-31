@@ -45,45 +45,56 @@ resource "aws_security_group" "My_VPC_Security_Group" {
   vpc_id       = "${aws_vpc.My_VPC.id}"
   name         = "My VPC Security Group"
   description  = "My VPC Security Group"
+
+# ssh
   ingress {
-    cidr_blocks = "${var.ingressCIDRblock}"  
+    cidr_blocks = "${var.ingressCIDRblock}"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
   }
+  # http
+  ingress {
+    cidr_blocks = "${var.ingressCIDRblock}"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+  }
+  # https
+  ingress {
+    cidr_blocks = "${var.ingressCIDRblock}"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+  }
+  ingress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    ipv6_cidr_blocks = ["::/0"]
+  }
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
 } # end resource
 
-# create VPC Network access control list
-resource "aws_network_acl" "My_VPC_Security_ACL" {
-  vpc_id = "${aws_vpc.My_VPC.id}"
-  subnet_ids = [ "${aws_subnet.My_VPC_Subnet.id}" ]
-# allow port 22
-  ingress {
-    protocol   = "tcp"
-    rule_no    = 100
-    action     = "allow"
-    cidr_block = "${var.destinationCIDRblock}" 
-    from_port  = 22
-    to_port    = 22
-  }
-# allow ingress ephemeral ports 
-  ingress {
-    protocol   = "tcp"
-    rule_no    = 200
-    action     = "allow"
-    cidr_block = "${var.destinationCIDRblock}"
-    from_port  = 1024
-    to_port    = 65535
-  }
-# allow egress ephemeral ports
-  egress {
-    protocol   = "tcp"
-    rule_no    = 100
-    action     = "allow"
-    cidr_block = "${var.destinationCIDRblock}"
-    from_port  = 1024
-    to_port    = 65535
-  }
-} # end resource
+
+output "vpc_id" {
+  value = "${aws_vpc.My_VPC.id}"
+}
+
+output "subnet_id" {
+  value = "${aws_subnet.My_VPC_Subnet.id}"
+}
 
 # end vpc.tf
