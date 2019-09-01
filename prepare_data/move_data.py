@@ -6,8 +6,8 @@ import shutil
 home_dir = "/home/ubuntu"
 arributes_directory = os.path.join(home_dir, "temp/raw_images", "annotations", "xmls")
 images_directory = os.path.join(home_dir, "temp/raw_images", "images")
-train_dir = os.path.join(home_dir, "data", "train")
-test_dir = os.path.join(home_dir, "data", "test")
+train_dir = os.path.join(home_dir, "data", "images", "train")
+test_dir = os.path.join(home_dir, "data", "images", "test")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--attr_path', default=arributes_directory)
