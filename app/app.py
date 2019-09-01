@@ -1,4 +1,5 @@
 import io
+import os
 import time
 import json
 import flask
@@ -8,22 +9,26 @@ import numpy as np
 from PIL import Image
 from io import BytesIO
 import tensorflow as tf
-from flask import request
-import utils.label_map_util
-import utils.process_response
+import tensorflow_inference.utils.label_map_util
+import tensorflow_inference.utils.process_response
+from flask import request, render_template
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+labels_path = os.path.join(current_dir, "tensorflow_inference", "models", "coco_label_map.pbtxt")
+model_path = os.path.join(current_dir, "tensorflow_inference", "models", "coco_inference_graph.pb")
 
 global access_key
-app = flask.Flask(__name__)
+app = flask.Flask(__name__, template_folder='template')
 
 class network():
     def __init__(self):
         # load graph, categories and labels
-        self.label_map = utils.label_map_util.load_labelmap("models/coco_label_map.pbtxt")
+        self.label_map = utils.label_map_util.load_labelmap(labels_path)
         self.categories = utils.label_map_util.convert_label_map_to_categories(self.label_map,
                             max_num_classes=90,
                             use_display_name=True)
         self.category_index = utils.label_map_util.create_category_index(self.categories)
-        self.graph = self.load_graph("models/coco_inference_graph.pb")
+        self.graph = self.load_graph(model_path)
         
         # init session for this graph
         self.sess = tf.Session(graph=self.graph)
@@ -71,9 +76,11 @@ def predict():
         url = str(in_data["image_url"])
         req_key = str(in_data["access_key"])
 
+        '''
         if req_key != access_key:
             response = {"err_msg": "access denied"}
             return response
+        '''
 
         print("in data: ", url)
         url_response = requests.get(url)
@@ -115,12 +122,16 @@ def get_key():
             response["err_msg"] = "access_denied"
         return flask.jsonify(response)
 
+@app.route('/')
+def root_page():
+    return render_template("main.html")
+
 def main():
     global access_key
     m = hashlib.new('ripemd160')
     m.update(('%s%s' % ("blue", "green")).encode('utf-8'))
     access_key = m.hexdigest()
-    app.run(host="0.0.0.0", port=8080)
+    app.run(host="0.0.0.0", port=80)
 
 if __name__ == "__main__":
     main()
