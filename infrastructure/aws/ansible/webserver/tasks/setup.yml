@@ -1,0 +1,16 @@
+- name: Update system
+  shell: apt-get update
+- name: Install python pip
+  shell: apt -y install python-pip
+- name: Install requests
+  shell: pip install requests
+- name: Install tensorflow
+  shell: pip install tensorflow
+- name: Install flask
+  shell: pip install flask
+- name: Install Pillow
+  shell: pip install Pillow
+
+
+
+    

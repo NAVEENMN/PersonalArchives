@@ -1,0 +1,11 @@
+---
+- hosts: webserver
+  become: yes
+  gather_facts: true
+  vars:
+    home_dir: /home/ubuntu
+  vars_files:
+    - vars/variables
+  tasks:
+    # - include_tasks: tasks/setup.yml
+    - include_tasks: tasks/setup_code_base.yml

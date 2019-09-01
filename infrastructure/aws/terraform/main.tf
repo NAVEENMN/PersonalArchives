@@ -6,7 +6,7 @@ provider "aws"{
 # resources to deploy in this region
 resource "aws_instance" "webserver"{
   ami = "${lookup(var.ami,var.aws_region)}"
-  instance_type = "t2.micro"
+  instance_type = "t2.medium"
   key_name = "nmysore"
   subnet_id = "${aws_subnet.My_VPC_Subnet.id}"
   vpc_security_group_ids = ["${aws_security_group.My_VPC_Security_Group.id}"]
