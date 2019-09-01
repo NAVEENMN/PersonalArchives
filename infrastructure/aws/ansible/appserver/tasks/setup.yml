@@ -15,4 +15,8 @@
     - "lxml"
     - "matplotlib"
     - "pandas"
+- name: Install pandas
+  shell: pip install pandas
+- name: Update system
+  shell: apt-get update
 

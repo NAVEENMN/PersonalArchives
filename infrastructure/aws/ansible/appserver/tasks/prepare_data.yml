@@ -24,32 +24,28 @@
     chdir: "{{ home_dir }}/temp/raw_images"
 - name: Move prepare data code base to data dir
   shell: "cp -r {{ home_dir }}/temp/object_detection/prepare_data/* {{ home_dir }}/data"
-- name: Create images train dir
-  file:
-    path: "{{ home_dir }}/data/images/train"
-    state: directory
-- name: Create images test dir
-  file:
-    path: "{{ home_dir }}/data/images/test"
-    state: directory
 - name: Run custom python script to arrange data
   shell: "python move_data.py"
   args:
     chdir: "{{ home_dir }}/data"
-- name: Genarate train tf records
-  shell: |
-    python generate_tfrecord.py 
-    --csv_input="{{ home_dir }}/data/images/train_labels.csv" 
-    --image_dir="{{ home_dir }}/data/images/train"
-    --output_path="{{ home_dir }}/data/train.record"
+- name: Run xml to csv converted
+  shell: "python xml_to_csv.py"
   args:
     chdir: "{{ home_dir }}/data"
+
+- name: Genarate train tf records
+  shell: python generate_tfrecord.py 
+    --csv_input="images/train_labels.csv" 
+    --image_dir="images/train"
+    --output_path="train.record"
+  args:
+    chdir: "{{ home_dir }}/data"
+
 - name: Genarate test tf records
-  shell: |
-    python generate_tfrecord.py 
-    --csv_input="{{ home_dir }}/data/images/test_labels.csv" 
-    --image_dir="{{ home_dir }}/data/images/test" 
-    --output_path="{{ home_dir }}/data/test.record"
+  shell: python generate_tfrecord.py 
+    --csv_input="images/test_labels.csv" 
+    --image_dir="images/test" 
+    --output_path="test.record"
   args:
     chdir: "{{ home_dir }}/data"
 

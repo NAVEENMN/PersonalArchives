@@ -2,23 +2,23 @@
   file:
     path: "{{ home_dir }}/training"
     state: directory
-- name: Create data dir
+- name: Create data dir ~/data
   file:
     path: "{{ home_dir }}/data"
     state: directory
-- name: Create data dir
+- name: Create train dir ~/data/images/train
   file:
-    path: "{{ home_dir }}/data/train"
+    path: "{{ home_dir }}/data/images/train"
     state: directory
-- name: Create data dir
+- name: Create test dir ~/data/images/test
   file:
-    path: "{{ home_dir }}/data/test"
+    path: "{{ home_dir }}/data/images/test"
     state: directory
-- name: Create temp dir
+- name: Create temp dir ~/temp
   file:
     path: "{{ home_dir }}/temp"
     state: directory
-- name: Create temp dir
+- name: Create raw images dir ~/temp/raw_images
   file:
     path: "{{ home_dir }}/temp/raw_images"
     state: directory

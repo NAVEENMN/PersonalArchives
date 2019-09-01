@@ -13,7 +13,7 @@
   environment:
     PYTHONPATH: "{{ python_path }}"
   tasks:
-    - include_tasks: tasks/setup.yml
+    #- include_tasks: tasks/setup.yml
     - include_tasks: tasks/setup_code_base.yml
     - include_tasks: tasks/prepare_data.yml
     # - include_tasks: tasks/object_detection_setup.yml
