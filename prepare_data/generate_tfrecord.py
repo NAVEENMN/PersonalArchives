@@ -27,7 +27,8 @@ flags.DEFINE_string('image_dir', '', 'Path to the image directory')
 flags.DEFINE_string('output_path', '', 'Path to output TFRecord')
 FLAGS = flags.FLAGS
 
-labels_json_path = "labels.json"
+dir_path = os.path.dirname(os.path.realpath(__file__))
+labels_json_path = os.path.join(dir_path, "class.json")
 
 # TO-DO replace this with label map
 def class_text_to_int(row_label):
