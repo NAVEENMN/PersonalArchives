@@ -13,11 +13,12 @@ from __future__ import absolute_import
 
 import os
 import io
+import json
 import pandas as pd
 import tensorflow as tf
 
 from PIL import Image
-from object_detection.utils import dataset_util
+from utils import dataset_util
 from collections import namedtuple, OrderedDict
 
 flags = tf.app.flags
@@ -26,24 +27,17 @@ flags.DEFINE_string('image_dir', '', 'Path to the image directory')
 flags.DEFINE_string('output_path', '', 'Path to output TFRecord')
 FLAGS = flags.FLAGS
 
+labels_json_path = "labels.json"
 
 # TO-DO replace this with label map
 def class_text_to_int(row_label):
-    if row_label == 'nine':
-        return 1
-    elif row_label == 'ten':
-        return 2
-    elif row_label == 'jack':
-        return 3
-    elif row_label == 'queen':
-        return 4
-    elif row_label == 'king':
-        return 5
-    elif row_label == 'ace':
-        return 6
+    with open(labels_json_path) as json_file:
+        data = json.load(json_file)
+    dat = dict(data)
+    if row_label in dat.keys():
+        return dat[row_label]
     else:
-        None
-
+        return None
 
 def split(df, group):
     data = namedtuple('data', ['filename', 'object'])
