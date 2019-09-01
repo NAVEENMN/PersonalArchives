@@ -6,14 +6,9 @@
   shell: git clone "{{ tensorflow_repo }}"
   when: is_cloned.stat.exists == False
   args:
-    chdir: "{{ home_dir }}"
+    chdir: "{{ home_dir }}/training"
 - name: Protobuf compilation
   shell: protoc object_detection/protos/*.proto --python_out=.
-  args:
-    chdir: "{{ research_dir }}"
-- name: Setting up environment var
-  shell: "export PYTHONPATH={{ python_path }}"
-  register: env_setting
   args:
     chdir: "{{ research_dir }}"
 - name: Testing installation
@@ -24,3 +19,30 @@
 - name: Validate install
   debug:
     msg: "{{ install_test.stderr_lines[-1] }}"
+- name: Move train.py from legacy to object_detection directory
+  shell: "cp {{ research_dir }}/object_detection/legacy/train.py {{ research_dir }}/object_detection"
+  args:
+    chdir: "{{ research_dir }}"
+- name: copy the tf-records, configs and train.py to object_detection directory
+  shell: "{{ item }}"
+  with_items:
+    - "cp {{ data_dir }}/train.record {{ research_dir }}/object_detection"
+    - "cp {{ data_dir }}/test.record {{ research_dir }}/object_detection"
+    - "cp {{ data_dir }}/training/train.py {{ research_dir }}/object_detection"
+    - "cp -r {{ data_dir }}/training {{ research_dir }}/object_detection"
+- name: Create pretrained dir
+  file:
+    path: "{{ research_dir }}/object_detection/pretrained"
+    state: directory
+- name: Download pretrained model
+  get_url:
+    url: "{{ faster_rcnn_checkpoint_url }}"
+    dest: "{{ research_dir }}/object_detection/pretrained/{{ checkpoint_file }}"
+- name: Unpack checkpoint
+  shell: "tar -xzf {{ checkpoint_file }}"
+  args:
+    chdir: "{{ research_dir }}/object_detection/pretrained"
+- debug:
+    msg: "setup complete please run the following to train"
+- debug:
+    msg: "sudo python train.py --logtostderr --train_dir=training/ --pipeline_config_path=training/faster_rcnn_inception_v2_pets.config"

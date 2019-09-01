@@ -1,2 +1,4 @@
 tensorflow_repo: "https://github.com/tensorflow/models.git"
 object_detection_repo: "https://github.com/NAVEENMN/object_detection.git"
+faster_rcnn_checkpoint_url: "http://download.tensorflow.org/models/object_detection/faster_rcnn_inception_v2_coco_2018_01_28.tar.gz"
+checkpoint_file: faster_rcnn_inception_v2_coco_2018_01_28.tar.gz
