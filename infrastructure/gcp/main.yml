@@ -1,0 +1,18 @@
+---
+- hosts: all
+  become: yes
+  gather_facts: true
+  vars:
+    temp: temp
+  vars_files:
+    - vars/auth
+    - vars/machines
+    - vars/zone
+  tasks:
+    - name: Get path of root directory
+      shell: pwd
+      register: root_path
+    - set_fact:
+        home_path: "{{ root_path.stdout }}"    
+    - include_tasks: provisioning/test.yml
+  

@@ -1,0 +1,3 @@
+---
+- debug: 
+    msg: "{{ home_path }}"
