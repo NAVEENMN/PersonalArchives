@@ -25,3 +25,8 @@ Data can be stored in S3 or downloaded locally. We need to dump the data in corr
 move_data.py
 ```
 is introduced.
+
+In the object detection directory
+```
+python train.py --logtostderr --train_dir=training/ --pipeline_config_path=training/faster_rcnn_inception_v2_pets.config
+```
