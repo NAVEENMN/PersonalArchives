@@ -3,15 +3,17 @@
   become: yes
   gather_facts: true
   vars:
-    home: /home/ubuntu
-    home_dir: /home/ubuntu/main
-    research_dir: /home/ubuntu/main/models/research
-    data_dir: /home/ubuntu/data
+    home_dir: /home/ubuntu
+    research_dir: "{{ home_dir }}/models/research"
+    prep_dir: "{{ home_dir }}/prep"
+    temp_dir: "{{ home_dir }}/temp"
     python_path: ":/home/ubuntu/main/models/research:/home/ubuntu/main/models/research/slim"
   vars_files:
     - vars/variables
   environment:
-    PYTHONPATH: "{{ python_path}}"
+    PYTHONPATH: "{{ python_path }}"
   tasks:
-    #- include_tasks: tasks/setup.yml
-    - include_tasks: tasks/object_detection_setup.yml
+    - include_tasks: tasks/setup.yml
+    - include_tasks: tasks/setup_code_base.yml
+    - include_tasks: tasks/prepare_data.yml
+    # - include_tasks: tasks/object_detection_setup.yml

@@ -1,0 +1,29 @@
+- name: Create training dir
+  file:
+    path: "{{ home_dir }}/training"
+    state: directory
+- name: Create data dir
+  file:
+    path: "{{ home_dir }}/data"
+    state: directory
+- name: Create data dir
+  file:
+    path: "{{ home_dir }}/data/train"
+    state: directory
+- name: Create data dir
+  file:
+    path: "{{ home_dir }}/data/test"
+    state: directory
+- name: Create temp dir
+  file:
+    path: "{{ home_dir }}/temp"
+    state: directory
+- name: Create temp dir
+  file:
+    path: "{{ home_dir }}/temp/raw_images"
+    state: directory
+- name: Clone object_detection_repo
+  shell: git clone "{{ object_detection_repo }}"
+  args:
+    chdir: "{{ home_dir }}/temp"
+  ignore_errors: yes

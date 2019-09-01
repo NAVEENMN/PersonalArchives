@@ -1,11 +1,3 @@
-- name: Create main dir
-  file:
-    path: "{{ home_dir }}"
-    state: directory
-- name: Create data dir
-  file:
-    path: "{{ data_dir }}"
-    state: directory
 - name: Check if repo cloned
   stat:
     path: "{{ research_dir }}"
@@ -32,38 +24,3 @@
 - name: Validate install
   debug:
     msg: "{{ install_test.stderr_lines[-1] }}"
-- name: Check if data downloaded
-  stat:
-    path: "{{ research_dir }}/images"
-  register: is_downloaded
-- name: Download data
-  get_url:
-    url: http://www.robots.ox.ac.uk/~vgg/data/pets/data/images.tar.gz
-    dest: "{{ research_dir }}"
-  when: is_downloaded.stat.exists == False
-- name: Download annotations
-  get_url:
-    url: http://www.robots.ox.ac.uk/~vgg/data/pets/data/annotations.tar.gz
-    dest: "{{ research_dir }}"
-  when: is_downloaded.stat.exists == False
-- name: Unpack data
-  shell: tar -xvf images.tar.gz
-  when: is_downloaded.stat.exists == False
-  args:
-    chdir: "{{ research_dir }}"
-- name: Unpack annotations
-  shell: tar -xvf annotations.tar.gz
-  when: is_downloaded.stat.exists == False
-  args:
-    chdir: "{{ research_dir }}"
-- name: Genrate tf record files
-  shell: |
-    'python object_detection/dataset_tools/create_pet_tf_record.py
-    --label_map_path=object_detection/data/pet_label_map.pbtxt
-    --data_dir= "{{ research_dir }}"
-    --output_dir= "{{ research_dir }}"'
-  register: out
-  args:
-    chdir: "{{ research_dir }}"
-- debug:
-    msg: "{{ out }}"

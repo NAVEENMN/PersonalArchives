@@ -1,1 +1,2 @@
 tensorflow_repo: "https://github.com/tensorflow/models.git"
+object_detection_repo: "https://github.com/NAVEENMN/object_detection.git"

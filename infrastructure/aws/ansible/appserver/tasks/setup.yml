@@ -14,4 +14,5 @@
     - "jupyter"
     - "lxml"
     - "matplotlib"
+    - "pandas"
 
