@@ -1,3 +1,8 @@
+- name: Create home directory
+  file:
+    path: "{{ home_dir }}"
+    state: directory
+
 - name: Create temp directory
   file:
     path: "{{ home_dir }}/temp"
@@ -24,3 +29,8 @@
   get_url:
     url: "{{ coco_inference_graph }}"
     dest: "{{ home_dir }}/tensorflow_inference/models"
+
+- name: Start the app server
+  shell: flask run --host=0.0.0.0 --port=80
+  args:
+    chdir: "{{ home_dir }}"

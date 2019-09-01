@@ -1,2 +1,2 @@
 [webserver]
-ec2-instance ansible_host=18.236.85.192 ansible_user=ubuntu ansible_ssh_private_key_file=/Users/naveenmysore/.ssh/nmysore.pem
+ec2-instance ansible_host=34.215.95.185 ansible_user=ubuntu ansible_ssh_private_key_file=/Users/naveenmysore/.ssh/nmysore.pem
