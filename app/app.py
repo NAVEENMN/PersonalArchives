@@ -69,7 +69,7 @@ def predict():
     if flask.request.method == "POST":
         in_data = json.loads(request.data)
         url = str(in_data["image_url"])
-        req_key = str(in_data["access_key"])
+        # req_key = str(in_data["access_key"])
 
         '''
         if req_key != access_key:
