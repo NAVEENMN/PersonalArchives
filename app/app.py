@@ -11,7 +11,7 @@ from io import BytesIO
 import tensorflow as tf
 from tensorflow_inference.utils import label_map_util
 from  tensorflow_inference.utils import process_response
-from flask import request, render_template
+from flask import request, render_template, url_for
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 labels_path = os.path.join(current_dir, "tensorflow_inference", "models", "coco_label_map.pbtxt")
@@ -67,27 +67,14 @@ net = network()
 def predict():
     response = {"success": False}
     if flask.request.method == "POST":
-        in_data = json.loads(request.data)
-        url = str(in_data["image_url"])
-        # req_key = str(in_data["access_key"])
 
-        '''
-        if req_key != access_key:
-            response = {"err_msg": "access denied"}
-            return response
-        '''
-        print("in data: ", url)
-        url_response = requests.get(url)
-
-        try:
-            image = Image.open(BytesIO(url_response.content))
-        except:
-            response = {"error_desp": "failed to load image."}
-            return flask.jsonify(response)
+        image_file = request.files['image']
+        image_file.save("test.jpg")
+        image = Image.open('test.jpg')
 
         start_time = time.time()
         preds = net.run_inference(image)
-        results, total = utils.process_response.process(net.category_index,
+        results, total = process_response.process(net.category_index,
                     image, preds, draw_boxes=True, save_it=True)
         end_time = time.time() - start_time
 
@@ -118,6 +105,10 @@ def get_key():
 @app.route('/')
 def root_page():
     return render_template("main.html")
+
+@app.route('/image')
+def image_page():
+    return render_template("image.html")
 
 def main():
     global access_key

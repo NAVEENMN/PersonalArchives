@@ -1,5 +1,3 @@
 ```
-export img_url=https://github.com/NAVEENMN/ModelRCNN/blob/master/client_test/test_image.jpg
-export url=
-curl -d "image_url=($test_url)" -X POST $url
+curl -X POST -F 'image=@/Users/naveenmysore/Documents/test_image.jpg' http://34.211.130.2:80/predict
 ```
