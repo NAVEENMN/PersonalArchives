@@ -73,6 +73,6 @@ def process(category_index, image, data, draw_boxes=False, save_it=False):
             count += 1
     
     if save_it:
-        image.save('/home/ubuntu/home/template/out.jpg')
+        image.save('/home/ubuntu/home/static/out.jpg')
 
     return result, str(count)
