@@ -4,6 +4,7 @@ import time
 import json
 import flask
 import hashlib
+import pymongo
 import requests
 import numpy as np
 from PIL import Image
@@ -19,6 +20,18 @@ model_path = os.path.join(current_dir, "tensorflow_inference", "models", "coco_i
 
 global access_key
 app = flask.Flask(__name__, template_folder='template')
+
+
+class database():
+    def __init__(self):
+        conn = "mongodb+srv://test_user:test@cluster0-onaoj.mongodb.net/test?retryWrites=true&w=majority"
+        self.client = pymongo.MongoClient(conn)
+        self.db = client.test
+
+    def add_entry(self, data):
+        post_id = db.posts.insert_one(data).inserted_id
+        return post_id
+
 
 class network():
     def __init__(self):
