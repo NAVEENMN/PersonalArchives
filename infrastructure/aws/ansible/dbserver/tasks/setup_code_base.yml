@@ -1,0 +1,9 @@
+- name: Create home directory
+  file:
+    path: "{{ home_dir }}"
+    state: directory
+
+- name: Create temp directory
+  file:
+    path: "{{ home_dir }}/temp"
+    state: directory

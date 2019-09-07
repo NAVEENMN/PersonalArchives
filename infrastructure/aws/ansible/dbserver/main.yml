@@ -1,0 +1,17 @@
+---
+- hosts: webserver
+  become: yes
+  gather_facts: true
+  vars:
+    home_dir: /home/ubuntu/home
+  vars_files:
+    - vars/variables
+  environment:
+    FLASK_APP: "{{ home_dir }}/app.py"  
+  tasks:
+    - name: "copy the webserver.config"
+      copy:
+        src: "../webserver.config"
+        dest: /etc/webserver.config
+    - include_tasks: tasks/setup.yml
+    - include_tasks: tasks/setup_code_base.yml

@@ -46,11 +46,15 @@ output "dbserver_ip_addr" {
   description = "The public IP address of the db server instance."
 }
 
-resource "local_file" "config" {
-  content  = aws_instance.dbserver.public_ip
-  filename = "config.json"
+resource "local_file" "webserver_config" {
+  content  = aws_instance.webserver.public_ip
+  filename = "../ansible/webserver.config"
 }
 
+resource "local_file" "dbserver_config" {
+  content  = aws_instance.dbserver.public_ip
+  filename = "../ansible/dbserver.config"
+}
 
 /*
 output "appserver_ip_addr" {
