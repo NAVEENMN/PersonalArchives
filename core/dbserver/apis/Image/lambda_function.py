@@ -23,6 +23,19 @@ class database():
 db = database()
 def handle_task(task, payload):
     result = {}
+    
+    if task == "get_image_data":
+        db_conn = db.get_conn(db_name="images")
+        collection = db_conn["metadata"]
+        try:
+            image_id = payload["query"]["image_id"]
+            obj = ObjectId(str(image_id))
+            res = collection.find_one({"_id":obj})
+            message = {"status":"ok", "data": res}
+            result = construct_resp(code=200, message=message)
+        except Exception as e:
+            result = construct_resp(code=500, message=str(e))
+            
     if task == "add_image_data":
         db_conn = db.get_conn(db_name="images")
         collection = db_conn["metadata"]
@@ -33,6 +46,7 @@ def handle_task(task, payload):
             result = construct_resp(code=200, message=message)
         except Exception as e:
             result = construct_resp(code=500, message=str(e))
+            
     return result
 
 def lambda_handler(event, context):
