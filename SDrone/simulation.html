@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title></title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.js'></script>
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase-messaging.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>
+    <script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.js"></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.js'></script>
+    <link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v3.1.1/mapbox-gl-directions.css' type='text/css' />
+    <link rel="stylesheet" type="text/css" href="/css/normalize.css">
+    <link rel="stylesheet" type="text/css" href="/css/result-light.css">
+    <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/base/jquery-ui.css">
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.37.0/mapbox-gl.css' rel='stylesheet' />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
+<script type="text/javascript" src="https://rawgit.com/jieter/Leaflet.encoded/master/Polyline.encoded.js"></script>
+<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css" />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>w
+</head>
+<body>
+<div id='map'></div>
+<script>
+
+var latitudes    = [];
+var longitudes   = [];
+var directions   = [];
+var actions      = [];
+var time_stamps  = [];
+var actions_took = [];
+var frame_id     = 0;
+// 0:Train, 1:Simulation, 2:Testing
+var mode         = 0;
+var direction    = 0;
+FORWARD          = 0 // index 1 --> 1000
+BACKWARD         = 1 // index 2 --> 0100
+LEFT             = 2 // index 3 --> 0010
+RIGHT            = 3 // index 4 --> 0001
+
+// Randomly pick a starting point
+var start_points =[
+[-122.1248, 37.4183],
+[-122.06720435383676, 37.337637693859854],
+[-122.06831987625098, 37.33828067882066],
+[-122.124039, 37.613780000000155],
+[-122.12630321069842, 37.41974027425775],
+[-122.12621263521405, 37.4196779166517],
+[-122.02072, 37.35828],
+];
+start_location = start_points[Math.floor((Math.random() * start_points.length))];
+start_latitude = start_location[0];
+start_longitude = start_location[1];
+
+// Initialize Firebase
+var trainref = new Firebase('https://sdrone-9ae10.firebaseio.com/train/');
+var testref  = new Firebase('https://sdrone-9ae10.firebaseio.com/');
+var simref  = new Firebase('https://sdrone-9ae10.firebaseio.com/');
+
+var directionsDiv = document.body.appendChild(document.createElement('div'));
+directionsDiv.id = 'navigation';
+// Setup MapBox
+mapboxgl.accessToken = 'pk.eyJ1IjoibXlzb3JuMSIsImEiOiIwODY0MDQ0ZTdiYTViYmU0ZTZiOGI4OTU5MjQxZGY1NCJ9.elqMFi4oQtFFjYXbW2Oxig';
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/dark-v9',
+    bearing: 0,
+    pitch: 0,
+    center: [start_latitude, start_longitude],
+    zoom: 20
+});
+
+// create a GeoJSON point to serve as a starting point
+var point = {
+    "type": "Point",
+    "coordinates": [start_latitude, start_longitude]
+};
+
+// for time stamping
+var time = Date.now || function() {
+  return +new Date;
+};
+var gametime = time();
+
+nav = "https://api.mapbox.com/directions/v5/mapbox/driving/"+start_latitude+","+start_longitude+";-122.02072,37.35828?&geometries=polyline&access_token="+mapboxgl.accessToken;
+
+map.on('load', function () {
+    // add the GeoJSON above to a new vector tile source
+    map.addSource('drone', { type: 'geojson', data: point });
+
+    map.addLayer({
+        "id": "drone",
+        "type": "symbol",
+        "source": "drone",
+        "layout": {
+            "icon-image": "airport-11",
+            "icon-rotation-alignment": "map",
+            "icon-size":4.0
+        }
+    });
+/*
+    $.ajax({
+        url: nav,
+        beforeSend: function(xhr) {
+             xhr.setRequestHeader("Authorization", "Bearer 6QXNMEMFHNY4FJ5ELNFMP5KRW52WFXN5")
+        }, success: function(data){
+            var geopoints = [];
+            var geo;
+            var points = Object.keys(data['routes']);
+            for(i=0; i<points.length;i++){
+                geo = data['routes'][i]['geometry'];
+                var coordinatepoints = L.Polyline.fromEncoded(geo).getLatLngs();
+                for(p=0; p<coordinatepoints.length;p++){
+                    lat = coordinatepoints[p].lng;
+                    longi = coordinatepoints[p].lat;
+                    geopoints.push([lat,longi]);
+                }
+            }
+           //window.alert(geopoints)
+            //process the JSON data etc
+            map.addLayer({
+            "id": "route",
+            "type": "line",
+            "source": {
+                "type": "geojson",
+                "data": {
+                   "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": geopoints
+                    }
+                }
+            },
+            "layout": {
+                "line-join": "round",
+                "line-cap": "round"
+            },
+            "paint": {
+                "line-color": "#888",
+                "line-width": 8
+            }
+        });
+
+        }
+    });
+*/
+    var dialog = $('<p>Select a mode.</p>').dialog({
+                    buttons: {
+                        "Train": function() {run(0);dialog.dialog('close');},
+                        "Simulation":  function() {run(1);dialog.dialog('close');},
+                        "Testing":  function() {run(2);dialog.dialog('close');}
+                    }
+                });
+
+});
+
+function run(mode) {
+    if(mode == 1) {
+        setTimeout(function() {  
+            simulation();
+        },4000);
+    }
+    if(mode == 0) {
+        Train();
+    }
+    if(mode == 2) {
+        Test();
+    }
+}
+
+function post(gametime, screenname, action){
+    var url = "http://localhost:8080/";
+    var params = "screenname="+screenname+"&action="+action+"&gametime="+gametime+"=";
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.send(params);
+}
+
+function setPosition() {
+    map.getSource('drone').setData(point);
+    map.setCenter(point.coordinates);
+    map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
+}
+
+function move(action) {
+    if (action < 2) {
+        if (action == FORWARD) {
+            point.coordinates[0] +=  Math.sin(direction) / 100000;
+            point.coordinates[1] +=  Math.cos(direction) / 100000;
+        } else {
+            point.coordinates[0] -=  Math.sin(direction) / 100000;
+            point.coordinates[1] -=  Math.cos(direction) / 100000;
+        }
+        map.getSource('drone').setData(point);
+        map.setCenter(point.coordinates);
+    } else {
+        map.easeTo({
+                    bearing: direction * (180 / Math.PI),
+                    speed: 1.0,
+        });
+        map.setLayoutProperty('drone', 'icon-rotate', direction * (180 / Math.PI));
+    }
+    trainref.child(gametime).push({'latitude':point.coordinates[0], 
+                   'longitude':point.coordinates[1],
+                   'direction': direction,
+                   'actions':action});
+}
+
+async function update_map(total_frames){
+    setTimeout(function() {  //Beginning of code that should run AFTER the timeout
+     point.coordinates[0] = latitudes[frame_id];
+     point.coordinates[1] = longitudes[frame_id];
+     direction = directions[frame_id];
+     action = actions[frame_id];
+     setPosition();
+     map.easeTo({
+                    bearing: direction * (180 / Math.PI),
+     });
+    
+    var curtime = time();
+    screenname = curtime.toString() + ".png";
+    time_stamps.push(screenname);
+    actions_took.push(action);
+    if (frame_id >= total_frames-1){
+        window.alert("Data collection complete. Check "+gametime+".csv!");
+        exportToCsv(gametime+'.csv', [
+        ['screen',time_stamps], 
+        ['action',actions_took],
+        ['gameid',gametime]
+        ]);
+     } else {
+        frame_id++;
+        update_map(total_frames);
+        post(gametime, screenname, action); 
+     }  
+    },200); 
+}
+
+function Test(){
+    testref.child('test').on('child_changed', function (snapshot) {
+        var data = snapshot.val();
+        var key = snapshot.key();
+        if(key == "latitude"){
+            point.coordinates[0] = data;
+        }
+        if(key == "longitude"){
+            point.coordinates[1] = data;
+        }
+        if(key == "direction"){
+            direction = data;
+        }
+        setPosition();
+        map.easeTo({
+            bearing: direction * (180 / Math.PI),
+        });
+        
+    });
+}
+
+function Train(){
+    // Add manual control of the airplane with left and right arrow keys
+    document.body.addEventListener('keydown', function (e) {
+    if (e.which === 65) { // pressed a
+        direction -= 0.0872665; // 5 degrees in radian
+        
+        move(LEFT);
+    }
+    if (e.which === 68) { // pressed d
+        direction += 0.0872665;
+        move(RIGHT);
+    }
+    if (e.which === 87) { // pressed w
+        move(FORWARD);
+        e.preventDefault(0);
+    }
+    if (e.which === 83) { // pressed s
+        move(BACKWARD);
+        e.preventDefault();
+    }
+    if (e.which === 82) { // pressed r
+        location.reload();
+    }
+    }, true);
+}
+
+function simulation(){
+    simref.child('train').once('value').then(function(snapshot) {
+        var games = snapshot.val();
+        var gameids = Object.keys(games);
+        var total_games = gameids.length-1;
+        var game_id = gameids[total_games];//latest game
+        var game = snapshot.child(game_id).val();//latest game
+        var uids = Object.keys(game);
+        var total_frames = uids.length;
+        for (i=0; i<total_frames; i++){
+            var gameinst = snapshot.child(game_id);
+            var latitude = parseFloat(gameinst.child(uids[i]).child('latitude').val());
+            var longitude = parseFloat(gameinst.child(uids[i]).child('longitude').val());
+            var action = parseInt(gameinst.child(uids[i]).child('actions').val());
+            direction = parseFloat(gameinst.child(uids[i]).child('direction').val());
+            latitudes.push(latitude);
+            longitudes.push(longitude);
+            directions.push(direction);
+            actions.push(action);
+        }
+        return total_frames;
+    }).then(function(total_frames) {
+        update_map(total_frames);
+    }, function(error) {
+        // Something went wrong.
+        console.error(error);
+    });
+}
+
+function exportToCsv(filename, rows) {
+        var processRow = function (row) {
+            var finalVal = '';
+            for (var j = 0; j < row.length; j++) {
+                var innerValue = row[j] === null ? '' : row[j].toString();
+                if (row[j] instanceof Date) {
+                    innerValue = row[j].toLocaleString();
+                };
+                var result = innerValue.replace(/"/g, '""');
+                if (result.search(/("|,|\n)/g) >= 0)
+                    result = '"' + result + '"';
+                if (j > 0)
+                    finalVal += ',';
+                finalVal += result;
+            }
+            return finalVal + '\n';
+        };
+
+        var csvFile = '';
+        for (var i = 0; i < rows.length; i++) {
+            csvFile += processRow(rows[i]);
+        }
+
+        var blob = new Blob([csvFile], { type: 'text/csv;charset=utf-8;' });
+        if (navigator.msSaveBlob) { // IE 10+
+            navigator.msSaveBlob(blob, filename);
+        } else {
+            var link = document.createElement("a");
+            if (link.download !== undefined) { // feature detection
+                // Browsers that support HTML5 download attribute
+                var url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+    }
+
+map.addControl(new mapboxgl.FullscreenControl());
+</script>
+
+</body>
+</html>

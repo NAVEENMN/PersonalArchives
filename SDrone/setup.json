@@ -1,0 +1,14 @@
+{
+  "environment": "autonomous drone",
+  "images_path": "D:\\map_data\\",
+  "models_path":"models\\",
+  "csv_path":"replays\\",
+  "image": {
+    "width": 320,
+    "height": 240,
+    "channel": 1
+  },
+  "model":{
+    "actions":4
+  }
+}
