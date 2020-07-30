@@ -1,6 +1,0 @@
-model_checkpoint_path: "pretrained_gan.ckpt-70000"
-all_model_checkpoint_paths: "pretrained_gan.ckpt-50000"
-all_model_checkpoint_paths: "pretrained_gan.ckpt-55000"
-all_model_checkpoint_paths: "pretrained_gan.ckpt-60000"
-all_model_checkpoint_paths: "pretrained_gan.ckpt-65000"
-all_model_checkpoint_paths: "pretrained_gan.ckpt-70000"
