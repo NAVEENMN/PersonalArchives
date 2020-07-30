@@ -1,0 +1,49 @@
+- name: Update system
+  shell: apt-get update
+- name: Create acc directory
+  file:
+    path: ~/acc
+    state: directory
+- name: Create server directory
+  file:
+    path: ~/acc/server
+    state: directory
+- name: Create temporary build directory
+  file:
+    path: ~/acc/temp
+    state: directory
+  register: tempdir
+- name: Install python3
+  shell: apt install python3
+- name: Install python3-pip
+  shell: echo y | apt install python3-pip
+- name: Import monogdb repo
+  shell: apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4
+- name: Get monogo public key
+  get_url:
+    url: https://www.mongodb.org/static/pgp/server-4.0.asc
+    dest: ~/acc/temp/mongo.gpg
+- name: add public key
+  shell: apt-key add ~/acc/temp/mongo.gpg
+- name: setup mongo repo
+  shell: echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list
+- name: Update system
+  shell: apt-get update
+- name: Install mongo dependencies
+  shell: apt-get install -y libcurl3 openssl
+- name: Install mongo server
+  shell: apt-get install -y mongodb-org-server
+- name : Install mongodb
+  shell: apt-get install -y mongodb-org
+- name: Install pymongo
+  shell: pip3 install pymongo
+- name: create data dir for mongo
+  shell: mkdir -p /data/db/ ; chown `id -u` /data/db
+- name: Install flask
+  shell: pip3 install flask
+- name: Install python dotenv
+  shell: pip3 install python-dotenv
+- name: Setting up database
+  include: ../playbooks/mongo_db.yml
+- name: Setting up Server app
+  include: ../playbooks/server_app.yml

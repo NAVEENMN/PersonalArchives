@@ -1,0 +1,24 @@
+- debug:
+    msg: Setting up server app
+- name: Cloning the deploy repo
+  git:
+    repo: '{{ deploy_repo_url }}'
+    dest: ~/acc/temp/checkout
+- name: Create bot app directory
+  file:
+    path: "~/botapp"
+    state: directory
+- name: Organizing app files
+  shell: "cp -r ~/acc/temp/checkout/server/* ~/botapp"
+- name: Create flask env
+  shell: "touch ~/.flaskenv"
+- name: Adding app name to flask env
+  lineinfile:
+    path: ~/.flaskenv
+    line: 'FLASK_APP=/root/botapp/botapp.py'
+- name: Export flask app
+  shell: export FLASK_APP=/root/botapp/botapp.py
+- name: Starting the app server
+  shell: "flask run --host=0.0.0.0"
+  args:
+    chdir: /root/botapp
