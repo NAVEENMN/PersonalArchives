@@ -1,0 +1,124 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:18:1-51:12
+INJECTED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:18:1-51:12
+MERGED from [com.google.android.things.contrib:driver-rainbowhat:0.11] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-rainbowhat-0.11.aar/8da0d639e58105c36932da039c5ce85f/AndroidManifest.xml:17:1-30:12
+MERGED from [org.tensorflow:tensorflow-lite:0.1.1] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/tensorflow-lite-0.1.1.aar/b1dc33bf97f6d592f0d2cf1921377762/AndroidManifest.xml:2:1-6:12
+MERGED from [com.google.android.things.contrib:driver-apa102:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-apa102-0.7.aar/2528aacc802da5479bb93484e89f0ba5/AndroidManifest.xml:17:1-30:12
+MERGED from [com.google.android.things.contrib:driver-button:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-button-0.7.aar/0f38d64832422cd6565f0257e102926e/AndroidManifest.xml:17:1-30:12
+MERGED from [com.google.android.things.contrib:driver-bmx280:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-bmx280-0.6.aar/901043e1ecad4059c78537cb570a90de/AndroidManifest.xml:17:1-30:12
+MERGED from [com.google.android.things.contrib:driver-ht16k33:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-ht16k33-0.6.aar/d00a8bf2077c3fe8e19e6a7b848fa55c/AndroidManifest.xml:17:1-30:12
+MERGED from [com.google.android.things.contrib:driver-pwmspeaker:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmspeaker-0.5.aar/3a2e854f379be79d9200fd618cb94bc6/AndroidManifest.xml:17:1-30:12
+MERGED from [com.google.android.things.contrib:driver-pwmservo:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmservo-0.5.aar/2b1a972979265a9a0ea6a19adc11375d/AndroidManifest.xml:17:1-30:12
+INJECTED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:18:1-51:12
+	package
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:19:5-56
+		INJECTED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:18:11-69
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:21:5-79
+	android:name
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:21:22-77
+uses-permission#android.permission.CAMERA
+ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:23:5-64
+	android:name
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:23:22-62
+uses-permission#com.google.android.things.permission.MANAGE_INPUT_DRIVERS
+ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:24:5-97
+	android:name
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:24:22-94
+application
+ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:27:5-49:19
+MERGED from [com.google.android.things.contrib:driver-rainbowhat:0.11] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-rainbowhat-0.11.aar/8da0d639e58105c36932da039c5ce85f/AndroidManifest.xml:24:5-28:19
+MERGED from [com.google.android.things.contrib:driver-rainbowhat:0.11] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-rainbowhat-0.11.aar/8da0d639e58105c36932da039c5ce85f/AndroidManifest.xml:24:5-28:19
+MERGED from [org.tensorflow:tensorflow-lite:0.1.1] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/tensorflow-lite-0.1.1.aar/b1dc33bf97f6d592f0d2cf1921377762/AndroidManifest.xml:4:45-5:18
+MERGED from [org.tensorflow:tensorflow-lite:0.1.1] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/tensorflow-lite-0.1.1.aar/b1dc33bf97f6d592f0d2cf1921377762/AndroidManifest.xml:4:45-5:18
+MERGED from [com.google.android.things.contrib:driver-apa102:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-apa102-0.7.aar/2528aacc802da5479bb93484e89f0ba5/AndroidManifest.xml:24:5-28:19
+MERGED from [com.google.android.things.contrib:driver-apa102:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-apa102-0.7.aar/2528aacc802da5479bb93484e89f0ba5/AndroidManifest.xml:24:5-28:19
+MERGED from [com.google.android.things.contrib:driver-button:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-button-0.7.aar/0f38d64832422cd6565f0257e102926e/AndroidManifest.xml:24:5-28:19
+MERGED from [com.google.android.things.contrib:driver-button:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-button-0.7.aar/0f38d64832422cd6565f0257e102926e/AndroidManifest.xml:24:5-28:19
+MERGED from [com.google.android.things.contrib:driver-bmx280:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-bmx280-0.6.aar/901043e1ecad4059c78537cb570a90de/AndroidManifest.xml:24:5-28:19
+MERGED from [com.google.android.things.contrib:driver-bmx280:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-bmx280-0.6.aar/901043e1ecad4059c78537cb570a90de/AndroidManifest.xml:24:5-28:19
+MERGED from [com.google.android.things.contrib:driver-ht16k33:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-ht16k33-0.6.aar/d00a8bf2077c3fe8e19e6a7b848fa55c/AndroidManifest.xml:24:5-28:19
+MERGED from [com.google.android.things.contrib:driver-ht16k33:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-ht16k33-0.6.aar/d00a8bf2077c3fe8e19e6a7b848fa55c/AndroidManifest.xml:24:5-28:19
+MERGED from [com.google.android.things.contrib:driver-pwmspeaker:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmspeaker-0.5.aar/3a2e854f379be79d9200fd618cb94bc6/AndroidManifest.xml:24:5-28:19
+MERGED from [com.google.android.things.contrib:driver-pwmspeaker:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmspeaker-0.5.aar/3a2e854f379be79d9200fd618cb94bc6/AndroidManifest.xml:24:5-28:19
+MERGED from [com.google.android.things.contrib:driver-pwmservo:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmservo-0.5.aar/2b1a972979265a9a0ea6a19adc11375d/AndroidManifest.xml:24:5-28:19
+MERGED from [com.google.android.things.contrib:driver-pwmservo:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmservo-0.5.aar/2b1a972979265a9a0ea6a19adc11375d/AndroidManifest.xml:24:5-28:19
+	android:label
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:28:9-41
+	android:icon
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:29:9-58
+	android:allowBackup
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:27:18-44
+	android:theme
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:30:9-67
+activity#com.example.androidthings.imageclassifier.ImageClassifierActivity
+ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:32:9-48:20
+	android:screenOrientation
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:33:13-50
+	android:label
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:34:13-45
+	android:name
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:32:19-58
+intent-filter#android.intent.action.MAIN+android.intent.category.LAUNCHER
+ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:35:13-38:29
+action#android.intent.action.MAIN
+ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:36:17-69
+	android:name
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:36:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:37:17-77
+	android:name
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml:37:27-74
+uses-sdk
+INJECTED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml
+INJECTED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml
+MERGED from [com.google.android.things.contrib:driver-rainbowhat:0.11] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-rainbowhat-0.11.aar/8da0d639e58105c36932da039c5ce85f/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.things.contrib:driver-rainbowhat:0.11] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-rainbowhat-0.11.aar/8da0d639e58105c36932da039c5ce85f/AndroidManifest.xml:20:5-22:41
+MERGED from [org.tensorflow:tensorflow-lite:0.1.1] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/tensorflow-lite-0.1.1.aar/b1dc33bf97f6d592f0d2cf1921377762/AndroidManifest.xml:4:4-45
+MERGED from [org.tensorflow:tensorflow-lite:0.1.1] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/tensorflow-lite-0.1.1.aar/b1dc33bf97f6d592f0d2cf1921377762/AndroidManifest.xml:4:4-45
+MERGED from [com.google.android.things.contrib:driver-apa102:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-apa102-0.7.aar/2528aacc802da5479bb93484e89f0ba5/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.things.contrib:driver-apa102:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-apa102-0.7.aar/2528aacc802da5479bb93484e89f0ba5/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.things.contrib:driver-button:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-button-0.7.aar/0f38d64832422cd6565f0257e102926e/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.things.contrib:driver-button:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-button-0.7.aar/0f38d64832422cd6565f0257e102926e/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.things.contrib:driver-bmx280:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-bmx280-0.6.aar/901043e1ecad4059c78537cb570a90de/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.things.contrib:driver-bmx280:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-bmx280-0.6.aar/901043e1ecad4059c78537cb570a90de/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.things.contrib:driver-ht16k33:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-ht16k33-0.6.aar/d00a8bf2077c3fe8e19e6a7b848fa55c/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.things.contrib:driver-ht16k33:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-ht16k33-0.6.aar/d00a8bf2077c3fe8e19e6a7b848fa55c/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.things.contrib:driver-pwmspeaker:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmspeaker-0.5.aar/3a2e854f379be79d9200fd618cb94bc6/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.things.contrib:driver-pwmspeaker:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmspeaker-0.5.aar/3a2e854f379be79d9200fd618cb94bc6/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.things.contrib:driver-pwmservo:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmservo-0.5.aar/2b1a972979265a9a0ea6a19adc11375d/AndroidManifest.xml:20:5-22:41
+MERGED from [com.google.android.things.contrib:driver-pwmservo:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmservo-0.5.aar/2b1a972979265a9a0ea6a19adc11375d/AndroidManifest.xml:20:5-22:41
+INJECTED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml
+INJECTED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml
+		ADDED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml
+		MERGED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml
+		INJECTED from /Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/AndroidManifest.xml
+uses-library#com.google.android.things
+ADDED from [com.google.android.things.contrib:driver-rainbowhat:0.11] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-rainbowhat-0.11.aar/8da0d639e58105c36932da039c5ce85f/AndroidManifest.xml:25:9-27:40
+MERGED from [com.google.android.things.contrib:driver-apa102:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-apa102-0.7.aar/2528aacc802da5479bb93484e89f0ba5/AndroidManifest.xml:25:9-27:40
+MERGED from [com.google.android.things.contrib:driver-apa102:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-apa102-0.7.aar/2528aacc802da5479bb93484e89f0ba5/AndroidManifest.xml:25:9-27:40
+MERGED from [com.google.android.things.contrib:driver-button:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-button-0.7.aar/0f38d64832422cd6565f0257e102926e/AndroidManifest.xml:25:9-27:40
+MERGED from [com.google.android.things.contrib:driver-button:0.7] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-button-0.7.aar/0f38d64832422cd6565f0257e102926e/AndroidManifest.xml:25:9-27:40
+MERGED from [com.google.android.things.contrib:driver-bmx280:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-bmx280-0.6.aar/901043e1ecad4059c78537cb570a90de/AndroidManifest.xml:25:9-27:40
+MERGED from [com.google.android.things.contrib:driver-bmx280:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-bmx280-0.6.aar/901043e1ecad4059c78537cb570a90de/AndroidManifest.xml:25:9-27:40
+MERGED from [com.google.android.things.contrib:driver-ht16k33:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-ht16k33-0.6.aar/d00a8bf2077c3fe8e19e6a7b848fa55c/AndroidManifest.xml:25:9-27:40
+MERGED from [com.google.android.things.contrib:driver-ht16k33:0.6] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-ht16k33-0.6.aar/d00a8bf2077c3fe8e19e6a7b848fa55c/AndroidManifest.xml:25:9-27:40
+MERGED from [com.google.android.things.contrib:driver-pwmspeaker:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmspeaker-0.5.aar/3a2e854f379be79d9200fd618cb94bc6/AndroidManifest.xml:25:9-27:40
+MERGED from [com.google.android.things.contrib:driver-pwmspeaker:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmspeaker-0.5.aar/3a2e854f379be79d9200fd618cb94bc6/AndroidManifest.xml:25:9-27:40
+MERGED from [com.google.android.things.contrib:driver-pwmservo:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmservo-0.5.aar/2b1a972979265a9a0ea6a19adc11375d/AndroidManifest.xml:25:9-27:40
+MERGED from [com.google.android.things.contrib:driver-pwmservo:0.5] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-pwmservo-0.5.aar/2b1a972979265a9a0ea6a19adc11375d/AndroidManifest.xml:25:9-27:40
+	android:required
+		ADDED from [com.google.android.things.contrib:driver-rainbowhat:0.11] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-rainbowhat-0.11.aar/8da0d639e58105c36932da039c5ce85f/AndroidManifest.xml:27:13-37
+	android:name
+		ADDED from [com.google.android.things.contrib:driver-rainbowhat:0.11] /Users/naveenmysore/.gradle/caches/transforms-1/files-1.1/driver-rainbowhat-0.11.aar/8da0d639e58105c36932da039c5ce85f/AndroidManifest.xml:26:13-53

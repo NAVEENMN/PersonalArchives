@@ -1,0 +1,43 @@
+{
+    "logs": [
+        {
+            "outputFile": "/Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/build/intermediates/incremental/mergeDebugResources/merged.dir/values/values.xml",
+            "map": [
+                {
+                    "source": "/Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/res/values/colors.xml",
+                    "from": {
+                        "startLines": "17",
+                        "startColumns": "4",
+                        "startOffsets": "650",
+                        "endColumns": "54",
+                        "endOffsets": "700"
+                    },
+                    "to": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "54",
+                        "endOffsets": "105"
+                    }
+                },
+                {
+                    "source": "/Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/res/values/strings.xml",
+                    "from": {
+                        "startLines": "17,20,19,18",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "650,861,785,730",
+                        "endColumns": "79,71,75,54",
+                        "endOffsets": "725,928,856,780"
+                    },
+                    "to": {
+                        "startLines": "3,4,5,6",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "110,190,262,338",
+                        "endColumns": "79,71,75,54",
+                        "endOffsets": "185,257,333,388"
+                    }
+                }
+            ]
+        }
+    ]
+}

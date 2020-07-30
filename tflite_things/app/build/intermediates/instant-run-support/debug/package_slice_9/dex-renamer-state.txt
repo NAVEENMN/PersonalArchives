@@ -1,0 +1,4 @@
+#Sat May 05 14:01:34 PDT 2018
+base.0=/Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/build/intermediates/transforms/dexMerger/debug/67
+path.0=classes.dex
+renamed.0=classes.dex

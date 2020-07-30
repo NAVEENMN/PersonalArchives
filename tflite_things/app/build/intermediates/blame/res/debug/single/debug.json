@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "/Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/build/intermediates/res/merged/debug/layout_activity_camera.xml.flat",
+        "source": "/Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/res/layout/activity_camera.xml"
+    },
+    {
+        "merged": "/Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/build/intermediates/res/merged/debug/drawable_sampledog_224x224.jpg.flat",
+        "source": "/Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/src/main/res/drawable/sampledog_224x224.jpg"
+    }
+]

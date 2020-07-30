@@ -1,0 +1,19 @@
+#Internal package file, do not edit.
+#Sat May 05 14:01:31 PDT 2018
+1.base=/Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/build/intermediates/assets/debug
+2.path=labels.txt
+0.baseType=DIRECTORY
+3.baseType=DIRECTORY
+2.base=/Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/build/intermediates/assets/debug
+3.set=ASSET
+2.set=ASSET
+1.baseType=DIRECTORY
+3.path=mobilenet_quant_v1_224.tflite
+count=4
+1.set=ASSET
+0.path=README.txt
+3.base=/Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/build/intermediates/assets/debug
+0.set=ASSET
+0.base=/Users/naveenmysore/workspace/image_class/androidthings-imageclassifier/imageclassifier-start/app/build/intermediates/assets/debug
+2.baseType=DIRECTORY
+1.path=LICENSE
