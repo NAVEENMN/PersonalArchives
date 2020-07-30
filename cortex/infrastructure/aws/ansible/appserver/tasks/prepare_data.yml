@@ -1,0 +1,51 @@
+- name: Check if data downloaded
+  stat:
+    path: "{{ home_dir }}/temp/raw_images/images.tar.gz"
+  register: is_downloaded
+- name: Download data
+  get_url:
+    url: http://www.robots.ox.ac.uk/~vgg/data/pets/data/images.tar.gz
+    dest: "{{ home_dir }}/temp/raw_images/images.tar.gz"
+  when: is_downloaded.stat.exists == False
+- name: Download annotations
+  get_url:
+    url: http://www.robots.ox.ac.uk/~vgg/data/pets/data/annotations.tar.gz
+    dest: "{{ home_dir }}/temp/raw_images/annotations.tar.gz"
+  when: is_downloaded.stat.exists == False
+- name: Unpack data
+  shell: tar -xvf images.tar.gz
+  when: is_downloaded.stat.exists == False
+  args:
+    chdir: "{{ home_dir }}/temp/raw_images"
+- name: Unpack annotations
+  shell: tar -xvf annotations.tar.gz
+  when: is_downloaded.stat.exists == False
+  args:
+    chdir: "{{ home_dir }}/temp/raw_images"
+- name: Move prepare data code base to data dir
+  shell: "cp -r {{ home_dir }}/temp/object_detection/prepare_data/* {{ home_dir }}/data"
+- name: Run custom python script to arrange data
+  shell: "python move_data.py"
+  args:
+    chdir: "{{ home_dir }}/data"
+- name: Run xml to csv converted
+  shell: "python xml_to_csv.py"
+  args:
+    chdir: "{{ home_dir }}/data"
+
+- name: Genarate train tf records
+  shell: python generate_tfrecord.py 
+    --csv_input="images/train_labels.csv" 
+    --image_dir="images/train"
+    --output_path="train.record"
+  args:
+    chdir: "{{ home_dir }}/data"
+
+- name: Genarate test tf records
+  shell: python generate_tfrecord.py 
+    --csv_input="images/test_labels.csv" 
+    --image_dir="images/test" 
+    --output_path="test.record"
+  args:
+    chdir: "{{ home_dir }}/data"
+

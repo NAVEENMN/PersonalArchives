@@ -1,0 +1,4 @@
+cortex_repo_url: "https://github.com/NAVEENMN/cortex.git"
+webapp_repo_url: "https://github.com/NAVEENMN/webapp.git"
+coco_inference_graph: "https://cortext-models.s3-us-west-2.amazonaws.com/coco_inference_graph.pb"
+inference_graph: "https://cortext-models.s3-us-west-2.amazonaws.com/inference_graph.pb"

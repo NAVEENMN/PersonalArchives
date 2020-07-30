@@ -1,0 +1,57 @@
+---
+# Setup api
+- name: Setup Object detection api
+  hosts: all
+  become: yes
+  gather_facts: no
+  vars_files:
+    - ../gce_vars/auth
+    - ../gce_vars/zone
+    - ../gce_vars/variables
+  tasks:
+    - name: Get path of root directory
+      shell: pwd
+      register: root_dir
+    - name: Make main directory
+      file:
+        path: "{{ root_dir.stdout }}/main"
+        state: directory
+    - name: Check if repo cloned
+      stat:
+        path: "{{ root_dir.stdout }}/main/models"
+      register: is_cloned
+    - name: clone the repo
+      shell: git clone '{{ api_repo }}'
+      when: is_cloned.stat.exists == False
+      args:
+        chdir: "{{ root_dir.stdout }}/main"
+    - name: Protobuf compilation
+      shell: "protoc object_detection/protos/*.proto --python_out=."
+      args:
+        chdir: "{{ root_dir.stdout }}/main/{{ research_dir }}"
+    - name: Ensure pythonenv is sourced from the .bashrc
+      blockinfile:
+        dest: "{{ root_dir.stdout }}/.bashrc"
+        block: |
+          export PYTHONPATH="$PYTHONPATH:{{ root_dir.stdout }}/main/{{ research_dir }}:{{ root_dir.stdout }}/main/{{ research_dir }}/slim"
+        marker: '# {mark} ANSIBLE MANAGED BLOCK -'
+        insertbefore: BOF
+        create: yes
+    - name: source the bashrc
+      shell: source "{{ root_dir.stdout }}/.bashrc"
+      args:
+        chdir: "{{ root_dir.stdout }}/main/{{ research_dir }}"
+        executable: /bin/bash
+    - name: check var
+      shell: echo $PYTHONPATH
+      register: path
+    - debug: msg="{{ path }}"
+    - name: test installation
+      shell: python object_detection/builders/model_builder_test.py
+      args:
+        chdir: "{{ root_dir.stdout }}/main/{{ research_dir }}"
+      register: command_output
+      environment:
+        PYTHONPATH: "$PYTHONPATH:{{ root_dir.stdout }}/main/{{ research_dir }}:{{ root_dir.stdout }}/main/{{ research_dir }}/slim"
+    - debug: msg="{{ command_output }}"
+

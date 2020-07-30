@@ -1,0 +1,45 @@
+- name: Update ubuntu
+  shell: apt-get update
+
+- name: Install node js
+  shell: apt-get -y install nodejs
+
+- name: Verify the install
+  shell: nodejs -v
+  register: node_version
+
+- debug:
+    msg: "node version: {{ node_version.stdout }}" 
+
+- name: Install npm
+  shell: apt-get -y install npm
+
+- name: Init npm
+  shell: npm init -y
+
+- name: Install express
+  shell: npm install express --save
+
+- name: Install express generator
+  shell: npm install -g express-generator
+
+- name: Create main app with generator
+  shell: express --view=ejs webapp
+
+- name: Install dependencies in webapp
+  shell: npm install
+  args:
+    chdir: /home/ubuntu/webapp
+
+- name: Create a tmp directory
+  file:
+    path: "/home/ubuntu/tmp"
+
+- name: Clone the app repo
+  shell: git clone {{ webapp_repo_url }}"
+  args:
+    chdir: "/home/ubuntu/tmp"
+
+- debug: To start the Engine run ( in mainapp )
+    msg: " DEBUG=webapp:* npm start "
+

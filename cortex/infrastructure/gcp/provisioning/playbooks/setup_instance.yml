@@ -1,0 +1,35 @@
+---
+# Setup the system 
+- name: Create an instance
+  hosts: all
+  become: yes
+  gather_facts: no
+  vars_files:
+    - ../gce_vars/auth
+    - ../gce_vars/zone
+  tasks:
+    - name: Get path of root directory
+      shell: pwd
+      register: root_dir
+    - set_fact:
+        root_dir = "{{ root_dir.stdout }}"
+    - name: Install python pip
+      shell: apt -y install python-pip
+    - name: Install git
+      shell: apt -y install git-all
+    - name: Install libraries
+      shell: apt-get -y install protobuf-compiler python-pil python-lxml python-tk
+    - name: Install tensorflow
+      shell: pip install tensorflow
+    - name: Install matplotlib
+      shell: pip install matplotlib
+    - name: Install few more libraries
+      shell: "pip install --user {{ item }}"
+      loop:
+        - "Cython"
+        - "contextlib2"
+        - "pillow"
+        - "lxml"
+        - "jupyter"
+        - "matplotlib"
+

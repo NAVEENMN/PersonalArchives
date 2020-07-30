@@ -1,0 +1,20 @@
+---
+- hosts: appserver
+  become: yes
+  gather_facts: true
+  vars:
+    home_dir: /home/ubuntu
+    research_dir: "{{ home_dir }}/training/models/research"
+    prep_dir: "{{ home_dir }}/prep"
+    temp_dir: "{{ home_dir }}/temp"
+    data_dir: "{{ home_dir }}/data"
+    python_path: ":{{ research_dir }}:{{ research_dir }}/slim"
+  vars_files:
+    - vars/variables
+  environment:
+    PYTHONPATH: "{{ python_path }}"
+  tasks:
+    #- include_tasks: tasks/setup.yml
+    #- include_tasks: tasks/setup_code_base.yml
+    #- include_tasks: tasks/prepare_data.yml
+    - include_tasks: tasks/object_detection_setup.yml

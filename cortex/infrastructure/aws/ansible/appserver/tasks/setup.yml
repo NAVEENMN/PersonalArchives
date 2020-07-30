@@ -1,0 +1,22 @@
+- name: Update system
+  shell: apt-get update
+- name: Install python pip
+  shell: apt -y install python-pip
+- name: Install tensorflow
+  shell: pip install tensorflow
+- name: Install protobuf, pil, lxml, tk
+  shell: apt-get -y install protobuf-compiler python-pil python-lxml python-tk
+- name: Install dependencies
+  shell: "pip install --user {{ item }}"
+  loop:
+    - "Cython"
+    - "contextlib2"
+    - "jupyter"
+    - "lxml"
+    - "matplotlib"
+    - "pandas"
+- name: Install pandas
+  shell: pip install pandas
+- name: Update system
+  shell: apt-get update
+

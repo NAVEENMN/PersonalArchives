@@ -1,0 +1,39 @@
+---
+# Setup api
+# move data to /dev/sda1
+# run df -h 
+- name: Setup Object detection api
+  hosts: all
+  become: yes
+  gather_facts: no
+  vars_files:
+    - ../gce_vars/auth
+    - ../gce_vars/zone
+    - ../gce_vars/variables
+  tasks:
+    - name: Get path of root directory
+      shell: pwd
+      register: root_dir
+    - name: check if data already downloaded
+      stat:
+        path: "{{ root_dir.stdout }}/main/{{ research_dir }}/{{ pascal_file_name }}"
+      register: is_downloaded
+    - name: Download PASCAL POC data
+      get_url:
+        url: "{{ pascal_data_url }}"
+        dest: "{{ root_dir.stdout }}/main/{{ research_dir }}"
+      when: is_downloaded.stat.exists == False
+    - name: Unpack contents
+      shell: tar -xvf "{{ pascal_file_name }}"
+      args:
+        chdir: "{{ root_dir.stdout }}/main/{{ research_dir }}"
+    - name: Generate TF records ( Train )
+      shell: |
+        python object_detection/dataset_tools/create_pascal_tf_record.py
+        --label_map_path=object_detection/data/pascal_label_map.pbtxt
+        --data_dir=VOCdevkit --year=VOC2012 --set=train
+        --output_path=pascal_train.record
+      args:
+        chdir: "{{ root_dir.stdout }}/main/{{ research_dir }}" 
+      environment:
+        PYTHONPATH: "$PYTHONPATH:{{ root_dir.stdout }}/main/{{ research_dir }}:{{ roo    t_dir.stdout }}/main/{{ research_dir }}/slim"

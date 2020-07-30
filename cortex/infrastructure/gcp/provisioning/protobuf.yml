@@ -1,0 +1,8 @@
+- name: Get path of root directory
+  shell: pwd
+  register: root_dir
+- set_fact:
+  home = root_dir.stdout
+
+- name: Create protobuf dir
+  shell:  

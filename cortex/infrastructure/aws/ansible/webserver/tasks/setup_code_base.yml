@@ -1,0 +1,36 @@
+- name: Create home directory
+  file:
+    path: "{{ home_dir }}"
+    state: directory
+
+- name: Create temp directory
+  file:
+    path: "{{ home_dir }}/temp"
+    state: directory
+
+- name: Check if repo cloned
+  stat:
+    path: "{{ home_dir }}/temp/cortex"
+  register: is_cloned
+
+- name: Clone the cortex repo
+  shell: git clone '{{ cortex_repo_url }}'
+  when: is_cloned.stat.exists == False
+  args:
+    chdir: "{{ home_dir }}/temp"
+
+- name: Copy code base to home directory
+  shell: "cp -r {{ home_dir }}/temp/cortex/app/* {{ home_dir }}"
+
+- name: delete the temp directory
+  shell: "rm -rf {{ home_dir }}/temp"
+
+- name: Download trained models to tensorflow_inference/models
+  get_url:
+    url: "{{ coco_inference_graph }}"
+    dest: "{{ home_dir }}/tensorflow_inference/models"
+
+- name: Start the app server
+  shell: flask run --host=0.0.0.0 --port=80
+  args:
+    chdir: "{{ home_dir }}"
