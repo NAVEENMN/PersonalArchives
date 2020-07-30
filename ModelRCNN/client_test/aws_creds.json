@@ -1,0 +1,7 @@
+{
+  "aws_bucket" : "bluedotpredict",
+  "access_key": "AKIAIQFCNAJ5DLTV73TA",
+  "secret_key": "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",
+  "end_point":"us-west-2",
+  "s3_host" : "s3.us-west-2.amazonaws.com"
+}
